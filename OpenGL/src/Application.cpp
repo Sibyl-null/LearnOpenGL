@@ -1,36 +1,25 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <exception>
 
+GLFWwindow* OpenGLInit();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void OnRender(GLFWwindow* window);
 void processInput(GLFWwindow* window);
+
+const unsigned int Scr_Width = 800;
+const unsigned int Scr_Height = 600;
+const float Clear_RGBA[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
 
 int main(void)
 {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
-    if (window == nullptr) {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    if (glewInit() != GLEW_OK) {
-        std::cout << "Failed to init GLEW" << std::endl;
-        return -1;
-    }
+    GLFWwindow* window = OpenGLInit();
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        OnRender(window);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -40,8 +29,33 @@ int main(void)
     return 0;
 }
 
+GLFWwindow* OpenGLInit() {
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow* window = glfwCreateWindow(Scr_Width, Scr_Height, "LearnOpenGL", nullptr, nullptr);
+    if (window == nullptr) {
+        glfwTerminate();
+        throw std::exception("Failed to create GLFW window");
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    if (glewInit() != GLEW_OK)
+        throw std::exception("Failed to init GLEW");
+
+    return window;
+}
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
+}
+
+void OnRender(GLFWwindow* window) {
+    glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void processInput(GLFWwindow* window) {
