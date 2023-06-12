@@ -5,7 +5,6 @@
 
 GLFWwindow* OpenGLInit();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void OnRender(GLFWwindow* window);
 void processInput(GLFWwindow* window);
 
 const unsigned int Scr_Width = 800;
@@ -16,10 +15,22 @@ int main(void)
 {
     GLFWwindow* window = OpenGLInit();
 
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f,  0.5f, 0.0f
+    };
+
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
-        OnRender(window);
+        glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -51,11 +62,6 @@ GLFWwindow* OpenGLInit() {
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
-}
-
-void OnRender(GLFWwindow* window) {
-    glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]);
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void processInput(GLFWwindow* window) {
