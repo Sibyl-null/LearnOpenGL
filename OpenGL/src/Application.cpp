@@ -3,6 +3,7 @@
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
 
 int main(void)
 {
@@ -26,6 +27,8 @@ int main(void)
     }
 
     while (!glfwWindowShouldClose(window)) {
+        processInput(window);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -36,4 +39,10 @@ int main(void)
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow* window) {
+    // 按下 ECS 键，就关闭窗口
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
 }
