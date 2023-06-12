@@ -11,9 +11,33 @@ const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
 const float Clear_RGBA[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
 
+const char* vertexShaderSource = "#version 330 core\n"
+                                 "layout (location = 0) in vec3 aPos;\n"
+                                 "void main()\n"
+                                 "{\n"
+                                 "   gl_Positio = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+                                 "}\0";
+
 int main(void)
 {
     GLFWwindow* window = OpenGLInit();
+
+    unsigned int vertexShader;
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
+    glCompileShader(vertexShader);  // 编译Shader
+
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
+        std::cout << "Failed to compile VertexShader\n" << infoLog << std::endl;
+        return -1;
+    }
+
+    //------------------------------------------------------------
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f,
@@ -25,6 +49,8 @@ int main(void)
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    //------------------------------------------------------------
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
