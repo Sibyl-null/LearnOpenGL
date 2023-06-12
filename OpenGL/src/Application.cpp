@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+
 int main(void)
 {
     glfwInit();
@@ -16,6 +18,7 @@ int main(void)
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     if (glewInit() != GLEW_OK) {
         std::cout << "Failed to init GLEW" << std::endl;
@@ -23,4 +26,8 @@ int main(void)
     }
 
     return 0;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
 }
