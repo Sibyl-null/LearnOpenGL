@@ -17,5 +17,10 @@ int main(void)
     }
     glfwMakeContextCurrent(window);
 
+    if (glewInit() != GLEW_OK) {
+        std::cout << "Failed to init GLEW" << std::endl;
+        return -1;
+    }
+
     return 0;
 }
