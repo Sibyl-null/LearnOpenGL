@@ -6,11 +6,18 @@
 #include <fstream>
 #include <sstream>
 
+#define ASSERT(x) if (!(x)) __debugbreak();
+#define GLCall(x) GLClearError();\
+                  x;\
+                  ASSERT(GLLogCall(#x, __FILE__, __LINE__));
+
 struct ShaderProgramSource {
     std::string VertexSource;
     std::string FragmentSource;
 };
 
+void GLClearError();
+bool GLLogCall(const char* function, const char* file, int line);
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void ProcessInput(GLFWwindow* window);
@@ -38,43 +45,44 @@ int main(void)
          0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
     };
 
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    unsigned int VAO;
+    GLCall(glGenVertexArrays(1, &VAO));
+    GLCall(glBindVertexArray(VAO));
 
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    unsigned int VBO;
+    GLCall(glGenBuffers(1, &VBO));
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, VBO));
+    GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
 
     // 位置属性
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0));
+    GLCall(glEnableVertexAttribArray(0));
     // 颜色属性
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))));
+    GLCall(glEnableVertexAttribArray(1));
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);   // 解绑VBO
-    glBindVertexArray(0);   // 解绑VAO
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));   // 解绑VBO
+    GLCall(glBindVertexArray(0));   // 解绑VAO
 
     //------------------------------------------------------------
 
     while (!glfwWindowShouldClose(window)) {
         ProcessInput(window);
 
-        glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLCall(glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]));
+        GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-        glUseProgram(shaderProgram);
+        GLCall(glUseProgram(shaderProgram));
 
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        GLCall(glBindVertexArray(VAO));
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+
+        GLCall(glfwSwapBuffers(window));
+        GLCall(glfwPollEvents());
     }
 
-    glDeleteProgram(shaderProgram);
+    GLCall(glDeleteProgram(shaderProgram));
     glfwTerminate();
     return 0;
 }
@@ -138,8 +146,8 @@ ShaderProgramSource ParseShader(const std::string& filePath) {
 unsigned int CompileShader(unsigned int shaderType, const std::string& shaderSources) {
     unsigned int shader = glCreateShader(shaderType);
     const char* scr = shaderSources.c_str();
-    glShaderSource(shader, 1, &scr, nullptr);
-    glCompileShader(shader);
+    GLCall(glShaderSource(shader, 1, &scr, nullptr));
+    GLCall(glCompileShader(shader));
 
     int result;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
@@ -166,13 +174,27 @@ unsigned int CreateShaderProgram(const std::string& vertexShaderSource, const st
     unsigned int fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
     unsigned int program = glCreateProgram();
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    glLinkProgram(program);
-    glValidateProgram(program);
+    GLCall(glAttachShader(program, vertexShader));
+    GLCall(glAttachShader(program, fragmentShader));
+    GLCall(glLinkProgram(program));
+    GLCall(glValidateProgram(program));
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
     return program;
+}
+
+void GLClearError() {
+    // 清除所有error信息
+    while (glGetError() != GL_NO_ERROR);
+}
+
+bool GLLogCall(const char* function, const char* file, int line) {
+    while (GLenum error = glGetError()) {
+        std::cout << "[OpenGL Error]( " << error << " ): " << function
+            << " " << file << ":" << line << std::endl;
+        return false;
+    }
+    return true;
 }
