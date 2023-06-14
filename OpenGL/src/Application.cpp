@@ -30,53 +30,58 @@ int main(void)
 {
     GLFWwindow* window = OpenGLInit();
 
-    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-    unsigned int shaderProgram = CreateShaderProgram(source.VertexSource, source.FragmentSource);
+    // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
+    // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
+    {
+        ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+        unsigned int shaderProgram = CreateShaderProgram(source.VertexSource, source.FragmentSource);
 
-    //------------------------------------------------------------
+        //------------------------------------------------------------
 
-    float vertices[] = {
-        // 位置              // 颜色
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
-    };
+        float vertices[] = {
+            // 位置              // 颜色
+             0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
+            -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
+             0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
+        };
 
-    unsigned int VAO;
-    GLCall(glGenVertexArrays(1, &VAO));
-    GLCall(glBindVertexArray(VAO));
-
-    VertexBuffer vertexBuffer(vertices, sizeof(vertices));
-
-    // 位置属性
-    GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0));
-    GLCall(glEnableVertexAttribArray(0));
-    // 颜色属性
-    GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))));
-    GLCall(glEnableVertexAttribArray(1));
-
-    vertexBuffer.UnBind();
-    GLCall(glBindVertexArray(0));   // 解绑VAO
-
-    //------------------------------------------------------------
-
-    while (!glfwWindowShouldClose(window)) {
-        ProcessInput(window);
-
-        GLCall(glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]));
-        GLCall(glClear(GL_COLOR_BUFFER_BIT));
-
-        GLCall(glUseProgram(shaderProgram));
-
+        unsigned int VAO;
+        GLCall(glGenVertexArrays(1, &VAO));
         GLCall(glBindVertexArray(VAO));
 
-        GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+        VertexBuffer vertexBuffer(vertices, sizeof(vertices));
 
-        GLCall(glfwSwapBuffers(window));
-        GLCall(glfwPollEvents());
+        // 位置属性
+        GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0));
+        GLCall(glEnableVertexAttribArray(0));
+        // 颜色属性
+        GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))));
+        GLCall(glEnableVertexAttribArray(1));
+
+        vertexBuffer.UnBind();
+        GLCall(glBindVertexArray(0));   // 解绑VAO
+
+        //------------------------------------------------------------
+
+        while (!glfwWindowShouldClose(window)) {
+            ProcessInput(window);
+
+            GLCall(glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]));
+            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+
+            GLCall(glUseProgram(shaderProgram));
+
+            GLCall(glBindVertexArray(VAO));
+
+            GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+
+            GLCall(glfwSwapBuffers(window));
+            GLCall(glfwPollEvents());
+        }
+
+        GLCall(glDeleteProgram(shaderProgram));
     }
-
-    GLCall(glDeleteProgram(shaderProgram));
+    
     glfwTerminate();
     return 0;
 }
