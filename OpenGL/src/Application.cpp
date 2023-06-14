@@ -6,17 +6,17 @@
 #include <fstream>
 #include <sstream>
 
-struct shaderProgramSource {
-    std::string vertexSource;
-    std::string fragmentSource;
+struct ShaderProgramSource {
+    std::string VertexSource;
+    std::string FragmentSource;
 };
 
-GLFWwindow* openGLInit();
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
-shaderProgramSource parseShader(const std::string& filePath);
-unsigned int compileShader(unsigned int shaderType, const std::string& shaderSources);
-unsigned int createShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
+GLFWwindow* OpenGLInit();
+void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
+void ProcessInput(GLFWwindow* window);
+ShaderProgramSource ParseShader(const std::string& filePath);
+unsigned int CompileShader(unsigned int shaderType, const std::string& shaderSources);
+unsigned int CreateShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
@@ -24,10 +24,10 @@ const float Clear_RGBA[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
 
 int main(void)
 {
-    GLFWwindow* window = openGLInit();
+    GLFWwindow* window = OpenGLInit();
 
-    shaderProgramSource source = parseShader("res/shaders/Basic.shader");
-    unsigned int shaderProgram = createShaderProgram(source.vertexSource, source.fragmentSource);
+    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+    unsigned int shaderProgram = CreateShaderProgram(source.VertexSource, source.FragmentSource);
 
     //------------------------------------------------------------
 
@@ -60,7 +60,7 @@ int main(void)
     //------------------------------------------------------------
 
     while (!glfwWindowShouldClose(window)) {
-        processInput(window);
+        ProcessInput(window);
 
         glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -79,7 +79,7 @@ int main(void)
     return 0;
 }
 
-GLFWwindow* openGLInit() {
+GLFWwindow* OpenGLInit() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -91,7 +91,7 @@ GLFWwindow* openGLInit() {
         throw std::exception("Failed to create GLFW window");
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
 
     if (glewInit() != GLEW_OK)
         throw std::exception("Failed to init GLEW");
@@ -99,17 +99,17 @@ GLFWwindow* openGLInit() {
     return window;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window) {
+void ProcessInput(GLFWwindow* window) {
     // 按下 ECS 键，就关闭窗口
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
 
-shaderProgramSource parseShader(const std::string& filePath) {
+ShaderProgramSource ParseShader(const std::string& filePath) {
     std::ifstream stream(filePath);
 
     enum class shaderType {
@@ -135,7 +135,7 @@ shaderProgramSource parseShader(const std::string& filePath) {
     return { ss[0].str(), ss[1].str() };
 }
 
-unsigned int compileShader(unsigned int shaderType, const std::string& shaderSources) {
+unsigned int CompileShader(unsigned int shaderType, const std::string& shaderSources) {
     unsigned int shader = glCreateShader(shaderType);
     const char* scr = shaderSources.c_str();
     glShaderSource(shader, 1, &scr, nullptr);
@@ -161,9 +161,9 @@ unsigned int compileShader(unsigned int shaderType, const std::string& shaderSou
     return shader;
 }
 
-unsigned int createShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource) {
-    unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-    unsigned int fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+unsigned int CreateShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource) {
+    unsigned int vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
+    unsigned int fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
     unsigned int program = glCreateProgram();
     glAttachShader(program, vertexShader);
