@@ -2,11 +2,13 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <exception>
-#include <cmath>
+#include <string>
 
-GLFWwindow* OpenGLInit();
+GLFWwindow* openGLInit();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+unsigned int compileShader(unsigned int shaderType, const std::string& shaderSources);
+unsigned int createShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
@@ -32,49 +34,9 @@ const char* fragmentShaderSource = "#version 330 core\n"
 
 int main(void)
 {
-    GLFWwindow* window = OpenGLInit();
+    GLFWwindow* window = openGLInit();
 
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-    glCompileShader(vertexShader);
-
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-        std::cout << "Failed to compile VertexShader\n" << infoLog << std::endl;
-        return -1;
-    }
-
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-        std::cout << "Failed to compile FragmentShader\n" << infoLog << std::endl;
-        return -1;
-    }
-
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-        std::cout << "Failed to Link ShaderProgram\n" << infoLog << std::endl;
-        return -1;
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    unsigned int shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
 
     //------------------------------------------------------------
 
@@ -125,7 +87,7 @@ int main(void)
     return 0;
 }
 
-GLFWwindow* OpenGLInit() {
+GLFWwindow* openGLInit() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -153,4 +115,46 @@ void processInput(GLFWwindow* window) {
     // 按下 ECS 键，就关闭窗口
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+}
+
+unsigned int compileShader(unsigned int shaderType, const std::string& shaderSources) {
+    unsigned int shader = glCreateShader(shaderType);
+    const char* scr = shaderSources.c_str();
+    glShaderSource(shader, 1, &scr, nullptr);
+    glCompileShader(shader);
+
+    int success;
+    char infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        std::cout << "Failed to compile Shader\n" << infoLog << std::endl;
+        return -1;
+    }
+
+    return shader;
+}
+
+unsigned int createShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource) {
+    unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
+    unsigned int fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+
+    unsigned int program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+
+    int success;
+    char infoLog[512];
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(program, 512, nullptr, infoLog);
+        std::cout << "Failed to Link ShaderProgram\n" << infoLog << std::endl;
+        return -1;
+    }
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    return program;
 }
