@@ -6,18 +6,13 @@
 #include <fstream>
 #include <sstream>
 
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearError();\
-                  x;\
-                  ASSERT(GLLogCall(#x, __FILE__, __LINE__));
+#include "Renderer.h"
 
 struct ShaderProgramSource {
     std::string VertexSource;
     std::string FragmentSource;
 };
 
-void GLClearError();
-bool GLLogCall(const char* function, const char* file, int line);
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void ProcessInput(GLFWwindow* window);
@@ -183,18 +178,4 @@ unsigned int CreateShaderProgram(const std::string& vertexShaderSource, const st
     glDeleteShader(fragmentShader);
 
     return program;
-}
-
-void GLClearError() {
-    // 清除所有error信息
-    while (glGetError() != GL_NO_ERROR);
-}
-
-bool GLLogCall(const char* function, const char* file, int line) {
-    while (GLenum error = glGetError()) {
-        std::cout << "[OpenGL Error]( " << error << " ): " << function
-            << " " << file << ":" << line << std::endl;
-        return false;
-    }
-    return true;
 }
