@@ -3,10 +3,18 @@
 #include <iostream>
 #include <exception>
 #include <string>
+#include <fstream>
+#include <sstream>
+
+struct shaderProgramSource {
+    std::string vertexSource;
+    std::string fragmentSource;
+};
 
 GLFWwindow* openGLInit();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+shaderProgramSource parseShader(const std::string& filePath);
 unsigned int compileShader(unsigned int shaderType, const std::string& shaderSources);
 unsigned int createShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
@@ -14,29 +22,12 @@ const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
 const float Clear_RGBA[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
 
-const char* vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "layout (location = 1) in vec3 aColor;\n"
-                                 "out vec3 ourColor;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                 "   ourColor = aColor;\n"
-                                 "}\0";
-
-const char* fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "in vec3 ourColor;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   FragColor = vec4(ourColor, 1.0);\n"
-                                   "}\0";
-
 int main(void)
 {
     GLFWwindow* window = openGLInit();
 
-    unsigned int shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+    shaderProgramSource source = parseShader("res/shaders/Basic.shader");
+    unsigned int shaderProgram = createShaderProgram(source.vertexSource, source.fragmentSource);
 
     //------------------------------------------------------------
 
@@ -116,6 +107,32 @@ void processInput(GLFWwindow* window) {
     // 按下 ECS 键，就关闭窗口
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+}
+
+shaderProgramSource parseShader(const std::string& filePath) {
+    std::ifstream stream(filePath);
+
+    enum class shaderType {
+        None = -1, Vertex = 0, Fragment = 1
+    };
+    shaderType type = shaderType::None;
+
+    std::stringstream ss[2];
+    std::string line;
+
+    while (std::getline(stream, line)) {
+        if (line.find("#shader") != std::string::npos) {
+            if (line.find("vertex") != std::string::npos)
+                type = shaderType::Vertex;
+            else if (line.find("fragment") != std::string::npos)
+                type = shaderType::Fragment;
+        }
+        else if (type != shaderType::None) {
+            ss[(int)type] << line << '\n';
+        }
+    }
+
+    return { ss[0].str(), ss[1].str() };
 }
 
 unsigned int compileShader(unsigned int shaderType, const std::string& shaderSources) {
