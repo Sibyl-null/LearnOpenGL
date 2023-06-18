@@ -1,27 +1,16 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <exception>
-#include <string>
-#include <fstream>
-#include <sstream>
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
-
-struct ShaderProgramSource {
-    std::string VertexSource;
-    std::string FragmentSource;
-};
+#include "Shader.h"
 
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void ProcessInput(GLFWwindow* window);
-ShaderProgramSource ParseShader(const std::string& filePath);
-unsigned int CompileShader(unsigned int shaderType, const std::string& shaderSources);
-unsigned int CreateShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
@@ -34,8 +23,7 @@ int main(void)
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-        unsigned int shaderProgram = CreateShaderProgram(source.VertexSource, source.FragmentSource);
+        Shader shader("res/shaders/Basic.shader");
 
         //------------------------------------------------------------
 
@@ -65,7 +53,8 @@ int main(void)
             GLCall(glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]));
             GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-            GLCall(glUseProgram(shaderProgram));
+            shader.Bind();
+            shader.SetUniform4f("xxColor", 0.5f, 0, 0.5f, 0.5f);
 
             vertexArray.Bind();
 
@@ -74,8 +63,6 @@ int main(void)
             GLCall(glfwSwapBuffers(window));
             GLCall(glfwPollEvents());
         }
-
-        GLCall(glDeleteProgram(shaderProgram));
     }
     
     glfwTerminate();
@@ -110,72 +97,4 @@ void ProcessInput(GLFWwindow* window) {
     // 按下 ECS 键，就关闭窗口
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-}
-
-ShaderProgramSource ParseShader(const std::string& filePath) {
-    std::ifstream stream(filePath);
-
-    enum class shaderType {
-        None = -1, Vertex = 0, Fragment = 1
-    };
-    shaderType type = shaderType::None;
-
-    std::stringstream ss[2];
-    std::string line;
-
-    while (std::getline(stream, line)) {
-        if (line.find("#shader") != std::string::npos) {
-            if (line.find("vertex") != std::string::npos)
-                type = shaderType::Vertex;
-            else if (line.find("fragment") != std::string::npos)
-                type = shaderType::Fragment;
-        }
-        else if (type != shaderType::None) {
-            ss[(int)type] << line << '\n';
-        }
-    }
-
-    return { ss[0].str(), ss[1].str() };
-}
-
-unsigned int CompileShader(unsigned int shaderType, const std::string& shaderSources) {
-    unsigned int shader = glCreateShader(shaderType);
-    const char* scr = shaderSources.c_str();
-    GLCall(glShaderSource(shader, 1, &scr, nullptr));
-    GLCall(glCompileShader(shader));
-
-    int result;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-
-        char* message = (char*)alloca(length * sizeof(char));
-        glGetShaderInfoLog(shader, length, &length, message);
-
-        std::cout << "Failed to Compile Shader : "
-            << (shaderType == GL_VERTEX_SHADER ? "vertex" : "fragment") << std::endl;
-        std::cout << message << std::endl;
-
-        glDeleteShader(shader);
-        return 0;
-    }
-
-    return shader;
-}
-
-unsigned int CreateShaderProgram(const std::string& vertexShaderSource, const std::string& fragmentShaderSource) {
-    unsigned int vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
-    unsigned int fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-    unsigned int program = glCreateProgram();
-    GLCall(glAttachShader(program, vertexShader));
-    GLCall(glAttachShader(program, fragmentShader));
-    GLCall(glLinkProgram(program));
-    GLCall(glValidateProgram(program));
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    return program;
 }
