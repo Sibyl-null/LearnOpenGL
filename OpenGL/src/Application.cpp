@@ -9,6 +9,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 struct ShaderProgramSource {
     std::string VertexSource;
@@ -45,21 +46,16 @@ int main(void)
              0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
         };
 
-        unsigned int VAO;
-        GLCall(glGenVertexArrays(1, &VAO));
-        GLCall(glBindVertexArray(VAO));
-
+        VertexArray vertexArray;
         VertexBuffer vertexBuffer(vertices, sizeof(vertices));
 
-        // 位置属性
-        GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0));
-        GLCall(glEnableVertexAttribArray(0));
-        // 颜色属性
-        GLCall(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))));
-        GLCall(glEnableVertexAttribArray(1));
+        VertexBufferLayout layout;
+        layout.Push<float>(3);      // 位置属性
+        layout.Push<float>(3);      // 颜色属性
+        vertexArray.AddBuffer(vertexBuffer, layout);
 
         vertexBuffer.UnBind();
-        GLCall(glBindVertexArray(0));   // 解绑VAO
+        vertexArray.UnBind();
 
         //------------------------------------------------------------
 
@@ -71,7 +67,7 @@ int main(void)
 
             GLCall(glUseProgram(shaderProgram));
 
-            GLCall(glBindVertexArray(VAO));
+            vertexArray.Bind();
 
             GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 
