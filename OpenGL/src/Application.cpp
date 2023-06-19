@@ -31,7 +31,12 @@ int main(void)
             // 位置              // 颜色
              0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
             -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
-             0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
+             0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,   // 右上
+            -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 左上
+        };
+        unsigned int indices[] = {
+            0, 1, 2,
+            1, 2, 3
         };
 
         VertexArray vertexArray;
@@ -41,6 +46,8 @@ int main(void)
         layout.Push<float>(3);      // 位置属性
         layout.Push<float>(3);      // 颜色属性
         vertexArray.AddBuffer(vertexBuffer, layout);
+
+        IndexBuffer indexBuffer(indices, 6);
 
         vertexBuffer.UnBind();
         vertexArray.UnBind();
@@ -58,7 +65,7 @@ int main(void)
 
             vertexArray.Bind();
 
-            GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
 
             GLCall(glfwSwapBuffers(window));
             GLCall(glfwPollEvents());
