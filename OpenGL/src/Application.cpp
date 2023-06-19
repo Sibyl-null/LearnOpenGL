@@ -7,6 +7,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "VertexBufferLayout.h"
 
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -14,7 +15,6 @@ void ProcessInput(GLFWwindow* window);
 
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
-const float Clear_RGBA[4] = { 0.2f, 0.3f, 0.3f, 1.0f };
 
 int main(void)
 {
@@ -24,6 +24,7 @@ int main(void)
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
         Shader shader("res/shaders/Basic.shader");
+        shader.Bind();
 
         //------------------------------------------------------------
 
@@ -39,33 +40,30 @@ int main(void)
             1, 2, 3
         };
 
-        VertexArray vertexArray;
-        VertexBuffer vertexBuffer(vertices, sizeof(vertices));
+        VertexArray va;
+        VertexBuffer vb(vertices, sizeof(vertices));
 
         VertexBufferLayout layout;
         layout.Push<float>(3);      // 位置属性
         layout.Push<float>(3);      // 颜色属性
-        vertexArray.AddBuffer(vertexBuffer, layout);
+        va.AddBuffer(vb, layout);
 
-        IndexBuffer indexBuffer(indices, 6);
+        IndexBuffer ib(indices, 6);
 
-        vertexBuffer.UnBind();
-        vertexArray.UnBind();
+        vb.UnBind();
+        va.UnBind();
 
         //------------------------------------------------------------
+
+        Renderer renderer;
 
         while (!glfwWindowShouldClose(window)) {
             ProcessInput(window);
 
-            GLCall(glClearColor(Clear_RGBA[0], Clear_RGBA[1], Clear_RGBA[2], Clear_RGBA[3]));
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            renderer.Clear();
 
-            shader.Bind();
             shader.SetUniform4f("xxColor", 0.5f, 0, 0.5f, 0.5f);
-
-            vertexArray.Bind();
-
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
+            renderer.Draw(va, ib, shader);
 
             GLCall(glfwSwapBuffers(window));
             GLCall(glfwPollEvents());

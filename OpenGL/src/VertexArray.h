@@ -1,6 +1,7 @@
 #pragma once
 #include "VertexBuffer.h";
-#include "VertexBufferLayout.h"
+
+class VertexBufferLayout;	// 避免include循环包含
 
 class VertexArray {
 private:
