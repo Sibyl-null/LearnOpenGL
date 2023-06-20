@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include "vendor/stb_image/stb_image.h"
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
@@ -28,15 +29,34 @@ int main(void)
 
         //------------------------------------------------------------
 
+        unsigned int texture;
+        GLCall(glGenTextures(1, &texture));
+        GLCall(glBindTexture(GL_TEXTURE_2D, texture));
+
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+        int width, height, nrChannels;
+        unsigned char* data = stbi_load("res/textures/wall.jpg", &width, &height, &nrChannels, 0);
+        ASSERT(data != nullptr);
+
+        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
+        GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+        stbi_image_free(data);
+
+        //------------------------------------------------------------
+
         float vertices[] = {
-            // 位置              // 颜色
-             0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
-            -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
-             0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,   // 右上
-            -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 左上
+        //     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
+            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
+            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
+           -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
+           -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
         };
         unsigned int indices[] = {
-            0, 1, 2,
+            0, 1, 3,
             1, 2, 3
         };
 
@@ -46,6 +66,7 @@ int main(void)
         VertexBufferLayout layout;
         layout.Push<float>(3);      // 位置属性
         layout.Push<float>(3);      // 颜色属性
+        layout.Push<float>(2);      // 纹理坐标
         va.AddBuffer(vb, layout);
 
         IndexBuffer ib(indices, 6);
@@ -62,7 +83,6 @@ int main(void)
 
             renderer.Clear();
 
-            shader.SetUniform4f("xxColor", 0.5f, 0, 0.5f, 0.5f);
             renderer.Draw(va, ib, shader);
 
             GLCall(glfwSwapBuffers(window));
