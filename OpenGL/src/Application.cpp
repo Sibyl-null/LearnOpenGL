@@ -9,6 +9,7 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "VertexBufferLayout.h"
+#include "Texture.h"
 
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -29,41 +30,8 @@ int main(void)
 
         //------------------------------------------------------------
 
-        unsigned int texture1;
-        GLCall(glGenTextures(1, &texture1));
-        GLCall(glBindTexture(GL_TEXTURE_2D, texture1));
-
-        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-        int width, height, nrChannels;
-        unsigned char* data = stbi_load("res/textures/container.jpg", &width, &height, &nrChannels, 0);
-        ASSERT(data != nullptr);
-
-        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
-        GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-        stbi_image_free(data);
-
-
-        unsigned int texture2;
-        GLCall(glGenTextures(1, &texture2));
-        GLCall(glBindTexture(GL_TEXTURE_2D, texture2));
-
-        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-        stbi_set_flip_vertically_on_load(true);
-        data = stbi_load("res/textures/awesomeface.png", &width, &height, &nrChannels, 0);
-        ASSERT(data != nullptr);
-
-        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
-        GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-        stbi_image_free(data);
-
+        Texture texture1("res/textures/container.jpg");
+        Texture texture2("res/textures/awesomeface.png");
 
         shader.SetUniform1i("texture1", 0);
         shader.SetUniform1i("texture2", 1);
@@ -105,10 +73,8 @@ int main(void)
 
             renderer.Clear();
 
-            GLCall(glActiveTexture(GL_TEXTURE0));
-            GLCall(glBindTexture(GL_TEXTURE_2D, texture1));
-            GLCall(glActiveTexture(GL_TEXTURE1));
-            GLCall(glBindTexture(GL_TEXTURE_2D, texture2));
+            texture1.Bind(0);
+            texture2.Bind(1);
 
             renderer.Draw(va, ib, shader);
 
