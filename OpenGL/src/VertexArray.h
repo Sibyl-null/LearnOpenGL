@@ -1,5 +1,5 @@
 #pragma once
-#include "VertexBuffer.h";
+#include "VertexBuffer.h"
 
 class VertexBufferLayout;	// 避免include循环包含
 

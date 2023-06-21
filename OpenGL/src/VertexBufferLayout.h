@@ -6,8 +6,7 @@ struct VertexBufferElement{
 	unsigned int type;
 	unsigned int count;
 	unsigned char normalized;
-	VertexBufferElement(){}
-	VertexBufferElement(unsigned int t, unsigned int c, bool n)
+	VertexBufferElement(unsigned int t = GL_FLOAT, unsigned int c = 0, bool n = GL_FALSE)
 		: type(t), count(c), normalized(n)
 	{}
 	
