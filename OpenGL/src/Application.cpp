@@ -1,7 +1,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include "vendor/stb_image/stb_image.h"
+#include "stb_image/stb_image.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
@@ -75,6 +78,11 @@ int main(void)
 
             texture1.Bind(0);
             texture2.Bind(1);
+
+            glm::mat4 trans;
+            trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+            trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+            shader.SetUniformMat4f("transform", 1, GL_FALSE, glm::value_ptr(trans));
 
             renderer.Draw(va, ib, shader);
 
