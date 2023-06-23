@@ -79,10 +79,14 @@ int main(void)
             texture1.Bind(0);
             texture2.Bind(1);
 
-            glm::mat4 trans;
-            trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-            trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-            shader.SetUniformMat4f("transform", 1, GL_FALSE, glm::value_ptr(trans));
+            glm::mat4 model, view, projection;
+            model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+            projection = glm::perspective(glm::radians(45.0f), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
+
+            shader.SetUniformMat4f("model", 1, GL_FALSE, glm::value_ptr(model));
+            shader.SetUniformMat4f("view", 1, GL_FALSE, glm::value_ptr(view));
+            shader.SetUniformMat4f("projection", 1, GL_FALSE, glm::value_ptr(projection));
 
             renderer.Draw(va, ib, shader);
 
