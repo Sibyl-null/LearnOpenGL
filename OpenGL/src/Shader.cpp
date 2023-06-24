@@ -53,9 +53,9 @@ void Shader::SetUniform1i(const std::string& name, int v)
     GLCall(glUniform1i(GetUniformLocation(name), v));
 }
 
-void Shader::SetUniformMat4f(const std::string& name, int count, bool transpose, const float* value)
+void Shader::SetUniformMat4f(const std::string& name, bool transpose, glm::mat4 trans)
 {
-    GLCall(glUniformMatrix4fv(GetUniformLocation(name), count, transpose, value));
+    GLCall(glUniformMatrix4fv(GetUniformLocation(name), 1, transpose, glm::value_ptr(trans)));
 }
 
 int Shader::GetUniformLocation(const std::string& name)

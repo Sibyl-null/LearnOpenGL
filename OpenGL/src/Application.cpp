@@ -126,14 +126,14 @@ int main(void)
             view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
             projection = glm::perspective(glm::radians(45.0f), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
 
-            shader.SetUniformMat4f("view", 1, GL_FALSE, glm::value_ptr(view));
-            shader.SetUniformMat4f("projection", 1, GL_FALSE, glm::value_ptr(projection));
+            shader.SetUniformMat4f("view", false, view);
+            shader.SetUniformMat4f("projection", false, projection);
 
             for (int i = 0; i < 10; ++i) {
                 glm::mat4 model;
                 model = glm::translate(model, cubePositions[i]);
                 model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
-                shader.SetUniformMat4f("model", 1, GL_FALSE, glm::value_ptr(model));
+                shader.SetUniformMat4f("model", false, model);
 
                 renderer.DrawArrays(va, shader, 36);
             }
