@@ -21,6 +21,10 @@ void ProcessInput(GLFWwindow* window);
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
 
+static glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+static glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+static glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
 int main(void)
 {
     GLFWwindow* window = OpenGLInit();
@@ -126,11 +130,8 @@ int main(void)
             projection = glm::perspective(glm::radians(45.0f), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
             shader.SetUniformMat4f("projection", false, projection);
 
-            float radius = 10.0f;
-            float camX = sin(glfwGetTime()) * radius;
-            float camZ = cos(glfwGetTime()) * radius;
             glm::mat4 view;
-            view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+            view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
             shader.SetUniformMat4f("view", false, view);
 
             for (int i = 0; i < 10; ++i) {
@@ -184,4 +185,14 @@ void ProcessInput(GLFWwindow* window) {
     // 按下 ECS 键，就关闭窗口
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    float cameraSpeed = 0.005f;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 }
