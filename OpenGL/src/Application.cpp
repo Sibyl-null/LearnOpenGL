@@ -99,6 +99,7 @@ int main(void)
         //------------------------------------------------------------
 
         Renderer renderer;
+        renderer.SetDepthTest(true);
 
         while (!glfwWindowShouldClose(window)) {
             ProcessInput(window);
