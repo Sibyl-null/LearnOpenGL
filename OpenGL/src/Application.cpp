@@ -122,17 +122,26 @@ int main(void)
             texture1.Bind(0);
             texture2.Bind(1);
 
-            glm::mat4 view, projection;
-            view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+            glm::mat4 projection;
             projection = glm::perspective(glm::radians(45.0f), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
-
-            shader.SetUniformMat4f("view", false, view);
             shader.SetUniformMat4f("projection", false, projection);
+
+            float radius = 10.0f;
+            float camX = sin(glfwGetTime()) * radius;
+            float camZ = cos(glfwGetTime()) * radius;
+            glm::mat4 view;
+            view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+            shader.SetUniformMat4f("view", false, view);
 
             for (int i = 0; i < 10; ++i) {
                 glm::mat4 model;
                 model = glm::translate(model, cubePositions[i]);
-                model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+
+                float angle = 20.0f * i;
+                if (i % 3 == 0)
+                    angle += (float)glfwGetTime() * 25;
+                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+
                 shader.SetUniformMat4f("model", false, model);
 
                 renderer.DrawArrays(va, shader, 36);
