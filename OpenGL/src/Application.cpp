@@ -18,6 +18,7 @@ GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void ProcessInput(GLFWwindow* window);
 void MouseCallback(GLFWwindow* window, double xpos, double ypos);
+void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
@@ -142,7 +143,7 @@ int main(void)
             texture2.Bind(1);
 
             glm::mat4 projection;
-            projection = glm::perspective(glm::radians(45.0f), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
+            projection = glm::perspective(glm::radians(fov), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
             shader.SetUniformMat4f("projection", false, projection);
 
             glm::mat4 view;
@@ -186,6 +187,7 @@ GLFWwindow* OpenGLInit() {
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
     glfwSetCursorPosCallback(window, MouseCallback);
+    glfwSetScrollCallback(window, ScrollCallback);
 
     // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -247,4 +249,14 @@ void MouseCallback(GLFWwindow* window, double xpos, double ypos) {
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(front);
+}
+
+void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    if (fov >= 1.0f && fov <= 45.0f)
+        fov -= yoffset;
+
+    if (fov <= 1.0f)
+        fov = 1.0f;
+    if (fov >= 45.0f)
+        fov = 45.0f;
 }
