@@ -13,6 +13,7 @@
 #include "Shader.h"
 #include "VertexBufferLayout.h"
 #include "Texture.h"
+#include "Camera.h"
 
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -23,19 +24,10 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
 
-static glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-static glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-static glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
 static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
 static float lastTime = 0.0f;   // 上一帧的时间
 
-static bool firstMouse = true;      // 第一次移动
-static float pitch = 0.0f;          // 俯仰角
-static float yaw = -90.0f;          // 偏航角
-static float lastX = Scr_Width / 2.0f;      // 上一次鼠标 x 轴位置
-static float lastY = Scr_Height / 2.0f;     // 上一次鼠标 y 轴位置
-static float fov = 45.0f;           // 摄像机 fov 值
+static Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 int main(void)
 {
@@ -143,11 +135,10 @@ int main(void)
             texture2.Bind(1);
 
             glm::mat4 projection;
-            projection = glm::perspective(glm::radians(fov), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
+            projection = glm::perspective(glm::radians(camera.GetFoV()), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
             shader.SetUniformMat4f("projection", false, projection);
 
-            glm::mat4 view;
-            view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+            glm::mat4 view = camera.GetViewMatrix();
             shader.SetUniformMat4f("view", false, view);
 
             for (int i = 0; i < 10; ++i) {
@@ -206,57 +197,13 @@ void ProcessInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    float cameraSpeed = 2.5f * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+    camera.ProcessKeyboard(window, deltaTime);
 }
 
 void MouseCallback(GLFWwindow* window, double xpos, double ypos) {
-    if (firstMouse) {
-        lastX = (float)xpos;
-        lastY = (float)ypos;
-        firstMouse = false;
-    }
-
-    float xOffset = xpos - lastX;
-    // 这里是相反的，ypos从下往上递减
-    // 鼠标往上，pitch应该增大，yOffset应该为正
-    float yOffset = lastY - ypos;
-    lastX = (float)xpos;
-    lastY = (float)ypos;
-
-    float sensitivity = 0.05f;    // 灵敏度
-    xOffset *= sensitivity;
-    yOffset *= sensitivity;
-
-    yaw += xOffset;
-    pitch += yOffset;
-
-    // 90度时视角会发生逆转，把89度作为极限
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(front);
+    camera.ProcessMouseMovement(xpos, ypos);
 }
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    if (fov >= 1.0f && fov <= 45.0f)
-        fov -= yoffset;
-
-    if (fov <= 1.0f)
-        fov = 1.0f;
-    if (fov >= 45.0f)
-        fov = 45.0f;
+    camera.ProcessMouseScroll(yoffset);
 }
