@@ -27,7 +27,9 @@ const unsigned int Scr_Height = 600;
 static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
 static float lastTime = 0.0f;   // 上一帧的时间
 
-static Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+static Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
+
+static glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main(void)
 {
@@ -36,86 +38,66 @@ int main(void)
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        Shader shader("res/shaders/Basic.shader");
-        shader.Bind();
-
-        //------------------------------------------------------------
-
-        Texture texture1("res/textures/container.jpg");
-        Texture texture2("res/textures/awesomeface.png");
-
-        shader.SetUniform1i("texture1", 0);
-        shader.SetUniform1i("texture2", 1);
+        Shader lightShader("res/shaders/Light.shader");
+        Shader cubeShader("res/shaders/Cube.shader");
 
         //------------------------------------------------------------
 
         float vertices[] = {
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-             0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f,
+             0.5f, -0.5f, -0.5f,
+             0.5f,  0.5f, -0.5f,
+             0.5f,  0.5f, -0.5f,
+            -0.5f,  0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
 
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,
+             0.5f, -0.5f,  0.5f,
+             0.5f,  0.5f,  0.5f,
+             0.5f,  0.5f,  0.5f,
+            -0.5f,  0.5f,  0.5f,
+            -0.5f, -0.5f,  0.5f,
 
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,
+            -0.5f,  0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f,  0.5f,
+            -0.5f,  0.5f,  0.5f,
 
-             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-             0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f,  0.5f,
+             0.5f,  0.5f, -0.5f,
+             0.5f, -0.5f, -0.5f,
+             0.5f, -0.5f, -0.5f,
+             0.5f, -0.5f,  0.5f,
+             0.5f,  0.5f,  0.5f,
 
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,
+             0.5f, -0.5f, -0.5f,
+             0.5f, -0.5f,  0.5f,
+             0.5f, -0.5f,  0.5f,
+            -0.5f, -0.5f,  0.5f,
+            -0.5f, -0.5f, -0.5f,
 
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+            -0.5f,  0.5f, -0.5f,
+             0.5f,  0.5f, -0.5f,
+             0.5f,  0.5f,  0.5f,
+             0.5f,  0.5f,  0.5f,
+            -0.5f,  0.5f,  0.5f,
+            -0.5f,  0.5f, -0.5f,
         };
 
-        glm::vec3 cubePositions[] = {
-            glm::vec3(0.0f,  0.0f,  0.0f),
-            glm::vec3(2.0f,  5.0f, -15.0f),
-            glm::vec3(-1.5f, -2.2f, -2.5f),
-            glm::vec3(-3.8f, -2.0f, -12.3f),
-            glm::vec3(2.4f, -0.4f, -3.5f),
-            glm::vec3(-1.7f,  3.0f, -7.5f),
-            glm::vec3(1.3f, -2.0f, -2.5f),
-            glm::vec3(1.5f,  2.0f, -2.5f),
-            glm::vec3(1.5f,  0.2f, -1.5f),
-            glm::vec3(-1.3f,  1.0f, -1.5f)
-        };
-
-        VertexArray va;
+        VertexArray cubeVAO, lightVAO;
         VertexBuffer vb(vertices, sizeof(vertices));
 
         VertexBufferLayout layout;
-        layout.Push<float>(3);      // 位置属性
-        layout.Push<float>(2);      // 纹理坐标
-        va.AddBuffer(vb, layout);
+        layout.Push<float>(3);
+        cubeVAO.AddBuffer(vb, layout);
+        lightVAO.AddBuffer(vb, layout);
 
         vb.UnBind();
-        va.UnBind();
+        cubeVAO.UnBind();
+        lightVAO.UnBind();
 
         //------------------------------------------------------------
 
@@ -128,32 +110,29 @@ int main(void)
             lastTime = currentTime;
 
             ProcessInput(window);
-
             renderer.Clear();
 
-            texture1.Bind(0);
-            texture2.Bind(1);
-
-            glm::mat4 projection;
-            projection = glm::perspective(glm::radians(camera.GetFoV()), (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
-            shader.SetUniformMat4f("projection", false, projection);
-
+            glm::mat4 model;
             glm::mat4 view = camera.GetViewMatrix();
-            shader.SetUniformMat4f("view", false, view);
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()), 
+                (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
 
-            for (int i = 0; i < 10; ++i) {
-                glm::mat4 model;
-                model = glm::translate(model, cubePositions[i]);
+            lightShader.Bind();
+            model = glm::translate(model, lightPos);
+            model = glm::scale(model, glm::vec3(0.2f));
+            lightShader.SetUniformMat4f("model", false, model);
+            lightShader.SetUniformMat4f("view", false, view);
+            lightShader.SetUniformMat4f("projection", false, projection);
+            renderer.DrawArrays(lightVAO, lightShader, 36);
 
-                float angle = 20.0f * i;
-                if (i % 3 == 0)
-                    angle += (float)glfwGetTime() * 25;
-                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-
-                shader.SetUniformMat4f("model", false, model);
-
-                renderer.DrawArrays(va, shader, 36);
-            }
+            cubeShader.Bind();
+            model = glm::mat4();
+            cubeShader.SetUniformMat4f("model", false, model);
+            cubeShader.SetUniformMat4f("view", false, view);
+            cubeShader.SetUniformMat4f("projection", false, projection);
+            cubeShader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
+            cubeShader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
+            renderer.DrawArrays(cubeVAO, cubeShader, 36);
 
             GLCall(glfwSwapBuffers(window));
             GLCall(glfwPollEvents());

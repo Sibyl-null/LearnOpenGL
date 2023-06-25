@@ -17,7 +17,7 @@ bool GLLogCall(const char* function, const char* file, int line) {
 
 void Renderer::Clear() const
 {
-    GLCall(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
+    GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
 
     GLbitfield clealMask = GL_COLOR_BUFFER_BIT;
     if (_enableDepthTest)
