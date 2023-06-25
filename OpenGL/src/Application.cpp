@@ -17,6 +17,7 @@
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void ProcessInput(GLFWwindow* window);
+void MouseCallback(GLFWwindow* window, double xpos, double ypos);
 
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
@@ -27,6 +28,13 @@ static glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
 static float lastTime = 0.0f;   // 上一帧的时间
+
+static bool firstMouse = true;      // 第一次移动
+static float pitch = 0.0f;          // 俯仰角
+static float yaw = -90.0f;          // 偏航角
+static float lastX = Scr_Width / 2.0f;      // 上一次鼠标 x 轴位置
+static float lastY = Scr_Height / 2.0f;     // 上一次鼠标 y 轴位置
+static float fov = 45.0f;           // 摄像机 fov 值
 
 int main(void)
 {
@@ -177,6 +185,9 @@ GLFWwindow* OpenGLInit() {
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
+    glfwSetCursorPosCallback(window, MouseCallback);
+
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (glewInit() != GLEW_OK)
         throw std::exception("Failed to init GLEW");
@@ -202,4 +213,38 @@ void ProcessInput(GLFWwindow* window) {
         cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+}
+
+void MouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    if (firstMouse) {
+        lastX = (float)xpos;
+        lastY = (float)ypos;
+        firstMouse = false;
+    }
+
+    float xOffset = xpos - lastX;
+    // 这里是相反的，ypos从下往上递减
+    // 鼠标往上，pitch应该增大，yOffset应该为正
+    float yOffset = lastY - ypos;
+    lastX = (float)xpos;
+    lastY = (float)ypos;
+
+    float sensitivity = 0.05f;    // 灵敏度
+    xOffset *= sensitivity;
+    yOffset *= sensitivity;
+
+    yaw += xOffset;
+    pitch += yOffset;
+
+    // 90度时视角会发生逆转，把89度作为极限
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(front);
 }
