@@ -6,8 +6,9 @@ struct VertexBufferElement{
 	unsigned int type;
 	unsigned int count;
 	unsigned char normalized;
-	VertexBufferElement(unsigned int t = GL_FLOAT, unsigned int c = 0, bool n = GL_FALSE)
-		: type(t), count(c), normalized(n)
+	bool isSkip;	// 是否跳过这个属性的使用
+	VertexBufferElement(unsigned int t = GL_FLOAT, unsigned int c = 0, bool n = GL_FALSE, bool skip = false)
+		: type(t), count(c), normalized(n), isSkip(skip)
 	{}
 	
 	static unsigned int GetSizeOfType(unsigned int type) {
@@ -49,6 +50,29 @@ public:
 	template<>
 	void Push<unsigned char>(unsigned int count) {
 		_elements.push_back({ GL_UNSIGNED_BYTE, count, GL_TRUE });
+		_stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_BYTE);
+	}
+
+	template<typename T>
+	void PushSkip(unsigned int count) {
+		static_assert(false);
+	}
+
+	template<>
+	void PushSkip<float>(unsigned int count) {
+		_elements.push_back({ GL_FLOAT, count, GL_FALSE, true });
+		_stride += count * VertexBufferElement::GetSizeOfType(GL_FLOAT);
+	}
+
+	template<>
+	void PushSkip<unsigned int>(unsigned int count) {
+		_elements.push_back({ GL_UNSIGNED_INT, count, GL_FALSE, true });
+		_stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_INT);
+	}
+
+	template<>
+	void PushSkip<unsigned char>(unsigned int count) {
+		_elements.push_back({ GL_UNSIGNED_BYTE, count, GL_TRUE, true });
 		_stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_BYTE);
 	}
 
