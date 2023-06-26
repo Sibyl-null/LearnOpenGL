@@ -138,6 +138,8 @@ int main(void)
             cubeShader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
             cubeShader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
             cubeShader.SetUniform3f("lightPos", lightPos.x, lightPos.y, lightPos.z);
+            glm::vec3 viewPos = camera.GetPosition();
+            cubeShader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
             renderer.DrawArrays(cubeVAO, cubeShader, 36);
 
             GLCall(glfwSwapBuffers(window));

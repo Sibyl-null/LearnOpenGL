@@ -20,6 +20,7 @@ public:
 	Camera(glm::vec3 pos);
 	~Camera();
 
+	glm::vec3 GetPosition() const { return _position; }
 	float GetFoV() const { return _fov; }
 	glm::mat4 GetViewMatrix() const;
 	void ProcessKeyboard(GLFWwindow* window, float deltaTime);
