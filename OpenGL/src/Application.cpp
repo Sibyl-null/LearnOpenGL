@@ -44,56 +44,61 @@ int main(void)
         //------------------------------------------------------------
 
         float vertices[] = {
-            -0.5f, -0.5f, -0.5f,
-             0.5f, -0.5f, -0.5f,
-             0.5f,  0.5f, -0.5f,
-             0.5f,  0.5f, -0.5f,
-            -0.5f,  0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+             0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-            -0.5f, -0.5f,  0.5f,
-             0.5f, -0.5f,  0.5f,
-             0.5f,  0.5f,  0.5f,
-             0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f,  0.5f,
-            -0.5f, -0.5f,  0.5f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+             0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-            -0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f,  0.5f,
-            -0.5f,  0.5f,  0.5f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-             0.5f,  0.5f,  0.5f,
-             0.5f,  0.5f, -0.5f,
-             0.5f, -0.5f, -0.5f,
-             0.5f, -0.5f, -0.5f,
-             0.5f, -0.5f,  0.5f,
-             0.5f,  0.5f,  0.5f,
+             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+             0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+             0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-            -0.5f, -0.5f, -0.5f,
-             0.5f, -0.5f, -0.5f,
-             0.5f, -0.5f,  0.5f,
-             0.5f, -0.5f,  0.5f,
-            -0.5f, -0.5f,  0.5f,
-            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+             0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-            -0.5f,  0.5f, -0.5f,
-             0.5f,  0.5f, -0.5f,
-             0.5f,  0.5f,  0.5f,
-             0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f,  0.5f,
-            -0.5f,  0.5f, -0.5f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+             0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
         };
 
         VertexArray cubeVAO, lightVAO;
         VertexBuffer vb(vertices, sizeof(vertices));
 
-        VertexBufferLayout layout;
-        layout.Push<float>(3);
-        cubeVAO.AddBuffer(vb, layout);
-        lightVAO.AddBuffer(vb, layout);
+        VertexBufferLayout cubeLayout;
+        cubeLayout.Push<float>(3);
+        cubeLayout.Push<float>(3);
+        cubeVAO.AddBuffer(vb, cubeLayout);
+
+        VertexBufferLayout lightLayout;
+        lightLayout.Push<float>(3);
+        lightLayout.PushSkip<float>(3);
+        lightVAO.AddBuffer(vb, lightLayout);
 
         vb.UnBind();
         cubeVAO.UnBind();
@@ -132,6 +137,7 @@ int main(void)
             cubeShader.SetUniformMat4f("projection", false, projection);
             cubeShader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
             cubeShader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform3f("lightPos", lightPos.x, lightPos.y, lightPos.z);
             renderer.DrawArrays(cubeVAO, cubeShader, 36);
 
             GLCall(glfwSwapBuffers(window));
