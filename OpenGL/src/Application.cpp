@@ -135,11 +135,16 @@ int main(void)
             cubeShader.SetUniformMat4f("model", false, model);
             cubeShader.SetUniformMat4f("view", false, view);
             cubeShader.SetUniformMat4f("projection", false, projection);
-            cubeShader.SetUniform3f("objectColor", 1.0f, 0.5f, 0.3f);
-            cubeShader.SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
-            cubeShader.SetUniform3f("lightPos", lightPos.x, lightPos.y, lightPos.z);
             glm::vec3 viewPos = camera.GetPosition();
             cubeShader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
+            cubeShader.SetUniform3f("material.ambient", 1.0f, 0.5f, 0.31f);
+            cubeShader.SetUniform3f("material.diffuse", 1.0f, 0.5f, 0.31f);
+            cubeShader.SetUniform3f("material.specular", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform1f("material.shininess", 16.0f);
+            cubeShader.SetUniform3f("light.position", lightPos.x, lightPos.y, lightPos.z);
+            cubeShader.SetUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
+            cubeShader.SetUniform3f("light.diffuse", 0.5f, 0.5f, 0.5f);
+            cubeShader.SetUniform3f("light.specular", 1.0f, 1.0f, 1.0f);
             renderer.DrawArrays(cubeVAO, cubeShader, 36);
 
             GLCall(glfwSwapBuffers(window));
@@ -167,7 +172,7 @@ GLFWwindow* OpenGLInit() {
     glfwSetCursorPosCallback(window, MouseCallback);
     glfwSetScrollCallback(window, ScrollCallback);
 
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (glewInit() != GLEW_OK)
         throw std::exception("Failed to init GLEW");
