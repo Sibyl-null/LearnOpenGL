@@ -142,9 +142,15 @@ int main(void)
             cubeShader.SetUniform3f("material.specular", 1.0f, 1.0f, 1.0f);
             cubeShader.SetUniform1f("material.shininess", 16.0f);
             cubeShader.SetUniform3f("light.position", lightPos.x, lightPos.y, lightPos.z);
-            cubeShader.SetUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
-            cubeShader.SetUniform3f("light.diffuse", 0.5f, 0.5f, 0.5f);
-            cubeShader.SetUniform3f("light.specular", 1.0f, 1.0f, 1.0f);
+            glm::vec3 lightColor;
+            lightColor.x = sin(glfwGetTime() * 2.0f);
+            lightColor.y = sin(glfwGetTime() * 0.7f);
+            lightColor.z = sin(glfwGetTime() * 1.3f);
+            glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // 降低影响
+            glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // 很低的影响
+            cubeShader.SetUniform3f("light.ambient", ambientColor.x, ambientColor.y, ambientColor.z);
+            cubeShader.SetUniform3f("light.diffuse", diffuseColor.x, diffuseColor.y, diffuseColor.z);
+            cubeShader.SetUniform3f("light.specular", lightColor.x, lightColor.y, lightColor.z);
             renderer.DrawArrays(cubeVAO, cubeShader, 36);
 
             GLCall(glfwSwapBuffers(window));
