@@ -110,6 +110,7 @@ int main(void)
         //------------------------------------------------------------
 
         Texture diffuseTexture("res/textures/container2.png");
+        Texture specularTexture("res/textures/container2_specular.png");
 
         Renderer renderer;
         renderer.SetDepthTest(true);
@@ -144,7 +145,7 @@ int main(void)
             cubeShader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
 
             cubeShader.SetUniform1i("material.diffuse", 0);
-            cubeShader.SetUniform3f("material.specular", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform1i("material.specular", 1);
             cubeShader.SetUniform1f("material.shininess", 16.0f);
 
             cubeShader.SetUniform3f("light.position", lightPos.x, lightPos.y, lightPos.z);
@@ -152,6 +153,7 @@ int main(void)
             cubeShader.SetUniform3f("light.diffuse", 0.5f, 0.5f, 0.5f);
             cubeShader.SetUniform3f("light.specular", 1.0f, 1.0f, 1.0f);
             diffuseTexture.Bind(0);
+            specularTexture.Bind(1);
             renderer.DrawArrays(cubeVAO, cubeShader, 36);
 
             GLCall(glfwSwapBuffers(window));
