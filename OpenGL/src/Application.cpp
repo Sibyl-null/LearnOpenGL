@@ -88,6 +88,19 @@ int main(void)
             -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
         };
 
+        glm::vec3 cubePositions[] = {
+            glm::vec3(0.0f,  0.0f,  0.0f),
+            glm::vec3(2.0f,  5.0f, -15.0f),
+            glm::vec3(-1.5f, -2.2f, -2.5f),
+            glm::vec3(-3.8f, -2.0f, -12.3f),
+            glm::vec3(2.4f, -0.4f, -3.5f),
+            glm::vec3(-1.7f,  3.0f, -7.5f),
+            glm::vec3(1.3f, -2.0f, -2.5f),
+            glm::vec3(1.5f,  2.0f, -2.5f),
+            glm::vec3(1.5f,  0.2f, -1.5f),
+            glm::vec3(-1.3f,  1.0f, -1.5f)
+        };
+
         VertexArray cubeVAO, lightVAO;
         VertexBuffer vb(vertices, sizeof(vertices));
 
@@ -137,8 +150,8 @@ int main(void)
             renderer.DrawArrays(lightVAO, lightShader, 36);
 
             cubeShader.Bind();
-            model = glm::mat4();
-            cubeShader.SetUniformMat4f("model", false, model);
+            diffuseTexture.Bind(0);
+            specularTexture.Bind(1);
             cubeShader.SetUniformMat4f("view", false, view);
             cubeShader.SetUniformMat4f("projection", false, projection);
             glm::vec3 viewPos = camera.GetPosition();
@@ -148,14 +161,22 @@ int main(void)
             cubeShader.SetUniform1i("material.specular", 1);
             cubeShader.SetUniform1f("material.shininess", 16.0f);
 
-            cubeShader.SetUniform3f("light.position", lightPos.x, lightPos.y, lightPos.z);
+            cubeShader.SetUniform3f("light.direction", -0.2f, -1.0f, -0.3f);
             cubeShader.SetUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
             cubeShader.SetUniform3f("light.diffuse", 0.5f, 0.5f, 0.5f);
             cubeShader.SetUniform3f("light.specular", 1.0f, 1.0f, 1.0f);
-            diffuseTexture.Bind(0);
-            specularTexture.Bind(1);
-            renderer.DrawArrays(cubeVAO, cubeShader, 36);
+           
+            for (unsigned int i = 0; i < 10; i++)
+            {
+                glm::mat4 model;
+                model = glm::translate(model, cubePositions[i]);
+                float angle = 20.0f * i;
+                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+                cubeShader.SetUniformMat4f("model", false, model);
 
+                renderer.DrawArrays(cubeVAO, cubeShader, 36);
+            }
+            
             GLCall(glfwSwapBuffers(window));
             GLCall(glfwPollEvents());
         }
