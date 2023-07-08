@@ -161,10 +161,13 @@ int main(void)
             cubeShader.SetUniform1i("material.specular", 1);
             cubeShader.SetUniform1f("material.shininess", 16.0f);
 
-            cubeShader.SetUniform3f("light.direction", -0.2f, -1.0f, -0.3f);
+            cubeShader.SetUniform3f("light.position", lightPos);
             cubeShader.SetUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
             cubeShader.SetUniform3f("light.diffuse", 0.5f, 0.5f, 0.5f);
             cubeShader.SetUniform3f("light.specular", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform1f("light.constant", 1.0f);
+            cubeShader.SetUniform1f("light.linear", 0.09f);
+            cubeShader.SetUniform1f("light.quadratic", 0.032f);
            
             for (unsigned int i = 0; i < 10; i++)
             {
