@@ -163,8 +163,8 @@ int main(void)
 
             cubeShader.SetUniform3f("light.position", camera.GetPosition());
             cubeShader.SetUniform3f("light.direction", camera.GetLookAtDir());
-            // cutOff 记录的不是角度而是余弦值
             cubeShader.SetUniform1f("light.cutOff", glm::cos(glm::radians(12.5f)));
+            cubeShader.SetUniform1f("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 
             cubeShader.SetUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
             cubeShader.SetUniform3f("light.diffuse", 0.5f, 0.5f, 0.5f);
