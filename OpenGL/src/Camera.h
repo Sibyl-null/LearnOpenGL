@@ -21,6 +21,7 @@ public:
 	~Camera();
 
 	glm::vec3 GetPosition() const { return _position; }
+	glm::vec3 GetLookAtDir() const { return _lookAtDir; }
 	float GetFoV() const { return _fov; }
 	glm::mat4 GetViewMatrix() const;
 	void ProcessKeyboard(GLFWwindow* window, float deltaTime);

@@ -161,7 +161,11 @@ int main(void)
             cubeShader.SetUniform1i("material.specular", 1);
             cubeShader.SetUniform1f("material.shininess", 16.0f);
 
-            cubeShader.SetUniform3f("light.position", lightPos);
+            cubeShader.SetUniform3f("light.position", camera.GetPosition());
+            cubeShader.SetUniform3f("light.direction", camera.GetLookAtDir());
+            // cutOff 记录的不是角度而是余弦值
+            cubeShader.SetUniform1f("light.cutOff", glm::cos(glm::radians(12.5f)));
+
             cubeShader.SetUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
             cubeShader.SetUniform3f("light.diffuse", 0.5f, 0.5f, 0.5f);
             cubeShader.SetUniform3f("light.specular", 1.0f, 1.0f, 1.0f);
