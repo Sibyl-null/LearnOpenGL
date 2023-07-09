@@ -101,6 +101,13 @@ int main(void)
             glm::vec3(-1.3f,  1.0f, -1.5f)
         };
 
+        glm::vec3 pointLightPositions[] = {
+            glm::vec3(0.7f,  0.2f,  2.0f),
+            glm::vec3(2.3f, -3.3f, -4.0f),
+            glm::vec3(-4.0f,  2.0f, -12.0f),
+            glm::vec3(0.0f,  0.0f, -3.0f)
+        };
+
         VertexArray cubeVAO, lightVAO;
         VertexBuffer vb(vertices, sizeof(vertices));
 
@@ -136,19 +143,23 @@ int main(void)
             ProcessInput(window);
             renderer.Clear();
 
-            glm::mat4 model;
             glm::mat4 view = camera.GetViewMatrix();
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()), 
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
 
             lightShader.Bind();
-            model = glm::translate(model, lightPos);
-            model = glm::scale(model, glm::vec3(0.2f));
-            lightShader.SetUniformMat4f("model", false, model);
             lightShader.SetUniformMat4f("view", false, view);
             lightShader.SetUniformMat4f("projection", false, projection);
-            renderer.DrawArrays(lightVAO, lightShader, 36);
 
+            for (int i = 0; i < 4; ++i) {
+                glm::mat4 model;
+                model = glm::translate(model, pointLightPositions[i]);
+                model = glm::scale(model, glm::vec3(0.2f));
+                lightShader.SetUniformMat4f("model", false, model);
+                renderer.DrawArrays(lightVAO, lightShader, 36);
+            }
+
+            //------------------------------------------------------------
             cubeShader.Bind();
             diffuseTexture.Bind(0);
             specularTexture.Bind(1);
@@ -161,17 +172,54 @@ int main(void)
             cubeShader.SetUniform1i("material.specular", 1);
             cubeShader.SetUniform1f("material.shininess", 16.0f);
 
-            cubeShader.SetUniform3f("light.position", camera.GetPosition());
-            cubeShader.SetUniform3f("light.direction", camera.GetLookAtDir());
-            cubeShader.SetUniform1f("light.cutOff", glm::cos(glm::radians(12.5f)));
-            cubeShader.SetUniform1f("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+            cubeShader.SetUniform3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+            cubeShader.SetUniform3f("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+            cubeShader.SetUniform3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+            cubeShader.SetUniform3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
-            cubeShader.SetUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
-            cubeShader.SetUniform3f("light.diffuse", 0.5f, 0.5f, 0.5f);
-            cubeShader.SetUniform3f("light.specular", 1.0f, 1.0f, 1.0f);
-            cubeShader.SetUniform1f("light.constant", 1.0f);
-            cubeShader.SetUniform1f("light.linear", 0.09f);
-            cubeShader.SetUniform1f("light.quadratic", 0.032f);
+            // point light 1
+            cubeShader.SetUniform3f("pointLights[0].position", pointLightPositions[0]);
+            cubeShader.SetUniform3f("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+            cubeShader.SetUniform3f("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+            cubeShader.SetUniform3f("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform1f("pointLights[0].constant", 1.0f);
+            cubeShader.SetUniform1f("pointLights[0].linear", 0.09f);
+            cubeShader.SetUniform1f("pointLights[0].quadratic", 0.032f);
+            // point light 2
+            cubeShader.SetUniform3f("pointLights[1].position", pointLightPositions[1]);
+            cubeShader.SetUniform3f("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
+            cubeShader.SetUniform3f("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+            cubeShader.SetUniform3f("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform1f("pointLights[1].constant", 1.0f);
+            cubeShader.SetUniform1f("pointLights[1].linear", 0.09f);
+            cubeShader.SetUniform1f("pointLights[1].quadratic", 0.032f);
+            // point light 3
+            cubeShader.SetUniform3f("pointLights[2].position", pointLightPositions[2]);
+            cubeShader.SetUniform3f("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+            cubeShader.SetUniform3f("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+            cubeShader.SetUniform3f("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform1f("pointLights[2].constant", 1.0f);
+            cubeShader.SetUniform1f("pointLights[2].linear", 0.09f);
+            cubeShader.SetUniform1f("pointLights[2].quadratic", 0.032f);
+            // point light 4
+            cubeShader.SetUniform3f("pointLights[3].position", pointLightPositions[3]);
+            cubeShader.SetUniform3f("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+            cubeShader.SetUniform3f("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+            cubeShader.SetUniform3f("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform1f("pointLights[3].constant", 1.0f);
+            cubeShader.SetUniform1f("pointLights[3].linear", 0.09f);
+            cubeShader.SetUniform1f("pointLights[3].quadratic", 0.032f);
+
+            cubeShader.SetUniform3f("spotLight.position", camera.GetPosition());
+            cubeShader.SetUniform3f("spotLight.direction", camera.GetLookAtDir());
+            cubeShader.SetUniform3f("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+            cubeShader.SetUniform3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
+            cubeShader.SetUniform1f("spotLight.constant", 1.0f);
+            cubeShader.SetUniform1f("spotLight.linear", 0.09f);
+            cubeShader.SetUniform1f("spotLight.quadratic", 0.032f);
+            cubeShader.SetUniform1f("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+            cubeShader.SetUniform1f("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
            
             for (unsigned int i = 0; i < 10; i++)
             {
