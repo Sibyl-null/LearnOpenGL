@@ -129,8 +129,8 @@ int main(void)
 
         //------------------------------------------------------------
 
-        Texture diffuseTexture("res/textures/container2.png");
-        Texture specularTexture("res/textures/container2_specular.png");
+        Texture diffuseTexture("res/textures/container2.png", TextureType::texture_diffuse);
+        Texture specularTexture("res/textures/container2_specular.png", TextureType::texture_specular);
 
         Renderer renderer;
         renderer.SetDepthTest(true);
@@ -168,8 +168,8 @@ int main(void)
             glm::vec3 viewPos = camera.GetPosition();
             cubeShader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
 
-            cubeShader.SetUniform1i("material.diffuse", 0);
-            cubeShader.SetUniform1i("material.specular", 1);
+            cubeShader.SetUniform1i("material.diffuse", diffuseTexture.GetSlot());
+            cubeShader.SetUniform1i("material.specular", specularTexture.GetSlot());
             cubeShader.SetUniform1f("material.shininess", 16.0f);
 
             cubeShader.SetUniform3f("dirLight.direction", -0.2f, -1.0f, -0.3f);

@@ -2,7 +2,8 @@
 #include "Renderer.h"
 #include "stb_image/stb_image.h"
 
-Texture::Texture(const std::string& texturePath)
+Texture::Texture(const std::string& texturePath, TextureType t)
+    : type(t)
 {
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(texturePath.c_str(), &_width, &_height, &_BPP, 4);
@@ -28,8 +29,9 @@ Texture::~Texture()
     GLCall(glDeleteTextures(1, &_renderId));
 }
 
-void Texture::Bind(unsigned int slot) const
+void Texture::Bind(unsigned int slot)
 {
+    _slot = slot;
     GLCall(glActiveTexture(GL_TEXTURE0 + slot));
     GLCall(glBindTexture(GL_TEXTURE_2D, _renderId));
 }
