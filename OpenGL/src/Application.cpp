@@ -14,6 +14,7 @@
 #include "VertexBufferLayout.h"
 #include "Texture.h"
 #include "Camera.h"
+#include "Model.h"
 
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -38,103 +39,13 @@ int main(void)
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        Shader lightShader("res/shaders/Light.shader");
-        Shader cubeShader("res/shaders/Cube.shader");
-
-        //------------------------------------------------------------
-
-        float vertices[] = {
-            // positions          // normals           // texture coords
-            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-             0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-
-            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-
-            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-             0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-        };
-
-        glm::vec3 cubePositions[] = {
-            glm::vec3(0.0f,  0.0f,  0.0f),
-            glm::vec3(2.0f,  5.0f, -15.0f),
-            glm::vec3(-1.5f, -2.2f, -2.5f),
-            glm::vec3(-3.8f, -2.0f, -12.3f),
-            glm::vec3(2.4f, -0.4f, -3.5f),
-            glm::vec3(-1.7f,  3.0f, -7.5f),
-            glm::vec3(1.3f, -2.0f, -2.5f),
-            glm::vec3(1.5f,  2.0f, -2.5f),
-            glm::vec3(1.5f,  0.2f, -1.5f),
-            glm::vec3(-1.3f,  1.0f, -1.5f)
-        };
-
-        glm::vec3 pointLightPositions[] = {
-            glm::vec3(0.7f,  0.2f,  2.0f),
-            glm::vec3(2.3f, -3.3f, -4.0f),
-            glm::vec3(-4.0f,  2.0f, -12.0f),
-            glm::vec3(0.0f,  0.0f, -3.0f)
-        };
-
-        VertexArray cubeVAO, lightVAO;
-        VertexBuffer vb(vertices, sizeof(vertices));
-
-        VertexBufferLayout cubeLayout;
-        cubeLayout.Push<float>(3);
-        cubeLayout.Push<float>(3);
-        cubeLayout.Push<float>(2);
-        cubeVAO.AddBuffer(vb, cubeLayout);
-
-        VertexBufferLayout lightLayout;
-        lightLayout.Push<float>(3);
-        lightLayout.PushSkip<float>(3);
-        lightLayout.PushSkip<float>(2);
-        lightVAO.AddBuffer(vb, lightLayout);
-
-        vb.UnBind();
-        cubeVAO.UnBind();
-        lightVAO.UnBind();
-
-        //------------------------------------------------------------
-
-        Texture diffuseTexture("res/textures/container2.png", TextureType::texture_diffuse);
-        Texture specularTexture("res/textures/container2_specular.png", TextureType::texture_specular);
+        Shader ourShader("res/shaders/ModelLoading.shader");
+        Model ourModel("res/models/backpack/backpack.obj");
 
         Renderer renderer;
         renderer.SetDepthTest(true);
 
+        std::cout << "Start Render Loop" << std::endl;
         while (!glfwWindowShouldClose(window)) {
             float currentTime = (float)glfwGetTime();
             deltaTime = currentTime - lastTime;
@@ -142,96 +53,25 @@ int main(void)
 
             ProcessInput(window);
             renderer.Clear();
+            // ------------------------------------------------
 
+            ourShader.Bind();
+
+            glm::mat4 model;
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
             glm::mat4 view = camera.GetViewMatrix();
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()), 
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
-
-            lightShader.Bind();
-            lightShader.SetUniformMat4f("view", view);
-            lightShader.SetUniformMat4f("projection", projection);
-
-            for (int i = 0; i < 4; ++i) {
-                glm::mat4 model;
-                model = glm::translate(model, pointLightPositions[i]);
-                model = glm::scale(model, glm::vec3(0.2f));
-                lightShader.SetUniformMat4f("model", model);
-                renderer.DrawArrays(lightVAO, lightShader, 36);
-            }
-
-            //------------------------------------------------------------
-            cubeShader.Bind();
-            diffuseTexture.Bind(0);
-            specularTexture.Bind(1);
-            cubeShader.SetUniformMat4f("view", view);
-            cubeShader.SetUniformMat4f("projection", projection);
-            glm::vec3 viewPos = camera.GetPosition();
-            cubeShader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
-
-            cubeShader.SetUniform1i("material.diffuse", diffuseTexture.GetSlot());
-            cubeShader.SetUniform1i("material.specular", specularTexture.GetSlot());
-            cubeShader.SetUniform1f("material.shininess", 16.0f);
-
-            cubeShader.SetUniform3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
-            cubeShader.SetUniform3f("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-            cubeShader.SetUniform3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-            cubeShader.SetUniform3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
-
-            // point light 1
-            cubeShader.SetUniform3f("pointLights[0].position", pointLightPositions[0]);
-            cubeShader.SetUniform3f("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-            cubeShader.SetUniform3f("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-            cubeShader.SetUniform3f("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-            cubeShader.SetUniform1f("pointLights[0].constant", 1.0f);
-            cubeShader.SetUniform1f("pointLights[0].linear", 0.09f);
-            cubeShader.SetUniform1f("pointLights[0].quadratic", 0.032f);
-            // point light 2
-            cubeShader.SetUniform3f("pointLights[1].position", pointLightPositions[1]);
-            cubeShader.SetUniform3f("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-            cubeShader.SetUniform3f("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-            cubeShader.SetUniform3f("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-            cubeShader.SetUniform1f("pointLights[1].constant", 1.0f);
-            cubeShader.SetUniform1f("pointLights[1].linear", 0.09f);
-            cubeShader.SetUniform1f("pointLights[1].quadratic", 0.032f);
-            // point light 3
-            cubeShader.SetUniform3f("pointLights[2].position", pointLightPositions[2]);
-            cubeShader.SetUniform3f("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-            cubeShader.SetUniform3f("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-            cubeShader.SetUniform3f("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-            cubeShader.SetUniform1f("pointLights[2].constant", 1.0f);
-            cubeShader.SetUniform1f("pointLights[2].linear", 0.09f);
-            cubeShader.SetUniform1f("pointLights[2].quadratic", 0.032f);
-            // point light 4
-            cubeShader.SetUniform3f("pointLights[3].position", pointLightPositions[3]);
-            cubeShader.SetUniform3f("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-            cubeShader.SetUniform3f("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-            cubeShader.SetUniform3f("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-            cubeShader.SetUniform1f("pointLights[3].constant", 1.0f);
-            cubeShader.SetUniform1f("pointLights[3].linear", 0.09f);
-            cubeShader.SetUniform1f("pointLights[3].quadratic", 0.032f);
-
-            cubeShader.SetUniform3f("spotLight.position", camera.GetPosition());
-            cubeShader.SetUniform3f("spotLight.direction", camera.GetLookAtDir());
-            cubeShader.SetUniform3f("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            cubeShader.SetUniform3f("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-            cubeShader.SetUniform3f("spotLight.specular", 1.0f, 1.0f, 1.0f);
-            cubeShader.SetUniform1f("spotLight.constant", 1.0f);
-            cubeShader.SetUniform1f("spotLight.linear", 0.09f);
-            cubeShader.SetUniform1f("spotLight.quadratic", 0.032f);
-            cubeShader.SetUniform1f("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            cubeShader.SetUniform1f("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-           
-            for (unsigned int i = 0; i < 10; i++)
-            {
-                glm::mat4 model;
-                model = glm::translate(model, cubePositions[i]);
-                float angle = 20.0f * i;
-                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-                cubeShader.SetUniformMat4f("model", model);
-
-                renderer.DrawArrays(cubeVAO, cubeShader, 36);
-            }
             
+            ourShader.SetUniformMat4f("model", model);
+            ourShader.SetUniformMat4f("view", view);
+            ourShader.SetUniformMat4f("projection", projection);
+
+            std::cout << "Start Draw" << std::endl;
+            ourModel.Draw(ourShader);
+            
+            // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
             GLCall(glfwPollEvents());
         }
@@ -257,7 +97,7 @@ GLFWwindow* OpenGLInit() {
     glfwSetCursorPosCallback(window, MouseCallback);
     glfwSetScrollCallback(window, ScrollCallback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (glewInit() != GLEW_OK)
         throw std::exception("Failed to init GLEW");
