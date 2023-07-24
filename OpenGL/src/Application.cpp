@@ -148,14 +148,14 @@ int main(void)
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
 
             lightShader.Bind();
-            lightShader.SetUniformMat4f("view", false, view);
-            lightShader.SetUniformMat4f("projection", false, projection);
+            lightShader.SetUniformMat4f("view", view);
+            lightShader.SetUniformMat4f("projection", projection);
 
             for (int i = 0; i < 4; ++i) {
                 glm::mat4 model;
                 model = glm::translate(model, pointLightPositions[i]);
                 model = glm::scale(model, glm::vec3(0.2f));
-                lightShader.SetUniformMat4f("model", false, model);
+                lightShader.SetUniformMat4f("model", model);
                 renderer.DrawArrays(lightVAO, lightShader, 36);
             }
 
@@ -163,8 +163,8 @@ int main(void)
             cubeShader.Bind();
             diffuseTexture.Bind(0);
             specularTexture.Bind(1);
-            cubeShader.SetUniformMat4f("view", false, view);
-            cubeShader.SetUniformMat4f("projection", false, projection);
+            cubeShader.SetUniformMat4f("view", view);
+            cubeShader.SetUniformMat4f("projection", projection);
             glm::vec3 viewPos = camera.GetPosition();
             cubeShader.SetUniform3f("viewPos", viewPos.x, viewPos.y, viewPos.z);
 
@@ -227,7 +227,7 @@ int main(void)
                 model = glm::translate(model, cubePositions[i]);
                 float angle = 20.0f * i;
                 model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-                cubeShader.SetUniformMat4f("model", false, model);
+                cubeShader.SetUniformMat4f("model", model);
 
                 renderer.DrawArrays(cubeVAO, cubeShader, 36);
             }
