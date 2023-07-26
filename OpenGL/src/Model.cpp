@@ -29,6 +29,7 @@ void Model::LoadModel(std::string path)
 
 void Model::ProcessNode(aiNode* node, const aiScene* scene)
 {
+    std::cout << "ProcessNode" << std::endl;
     // 处理节点所有的网格（如果有的话）
     for (unsigned int i = 0; i < node->mNumMeshes; i++){
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
@@ -43,6 +44,7 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene)
 
 Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
+    std::cout << "ProcessMesh" << std::endl;
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
@@ -109,8 +111,24 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* mat, aiTextureType 
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++){
         aiString str;
         mat->GetTexture(type, i, &str);
-        Texture tex(_directory + "/" + str.C_Str(), typeEnum);
-        textures.push_back(tex);
+        std::string loadPath = _directory + "/" + str.C_Str();
+        bool skip = false;
+        for (unsigned int j = 0; j < _textures_loaded.size(); j++)
+        {
+            if (std::strcmp(_textures_loaded[j].path.data(), loadPath.c_str()) == 0)
+            {
+                textures.push_back(_textures_loaded[j]);
+                skip = true;
+                break;
+            }
+        }
+        if (!skip)
+        {
+            Texture texture(loadPath, typeEnum);
+            textures.push_back(texture);
+            _textures_loaded.push_back(texture);
+        }
+        std::cout << "skip load texture: " << (skip ? "true" : "false") << std::endl;
     }
     return textures;
 }

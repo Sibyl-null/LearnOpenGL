@@ -15,6 +15,8 @@ void Mesh::Draw(Shader& shader)
 {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
+    unsigned int normalNr = 1;
+    unsigned int heightNr = 1;
     for (unsigned int i = 0; i < textures.size(); i++) {
         textures[i].Bind(i);
 
@@ -26,8 +28,15 @@ void Mesh::Draw(Shader& shader)
             std::string number = std::to_string(specularNr++);
             shader.SetUniform1i("texture_specular" + number, i);
         }
+        else if (textures[i].type == TextureType::texture_normal) {
+            std::string number = std::to_string(normalNr++);
+            shader.SetUniform1i("texture_normal" + number, i);
+        }
+        else if (textures[i].type == TextureType::texture_height) {
+            std::string number = std::to_string(heightNr++);
+            shader.SetUniform1i("texture_height" + number, i);
+        }
     }
-    GLCall(glActiveTexture(GL_TEXTURE0));
 
     GLCall(glBindVertexArray(_VAO));
     GLCall(glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0));

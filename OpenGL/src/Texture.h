@@ -17,6 +17,7 @@ private:
 	unsigned int _slot;
 public:
 	TextureType type;
+	std::string path;
 
 	Texture(const std::string& texturePath, TextureType t);
 	~Texture();

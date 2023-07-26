@@ -12,6 +12,7 @@ public:
 private:
     std::vector<Mesh> _meshes;
     std::string _directory;
+    std::vector<Texture> _textures_loaded;
 
     void LoadModel(std::string path);
     void ProcessNode(aiNode* node, const aiScene* scene);

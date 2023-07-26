@@ -1,12 +1,17 @@
 #include "Texture.h"
 #include "Renderer.h"
 #include "stb_image/stb_image.h"
+#include <iostream>
 
 Texture::Texture(const std::string& texturePath, TextureType t)
-    : type(t)
+    : type(t), path(texturePath)
 {
+    std::cout << "Load Texture From: " << path << std::endl;
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(texturePath.c_str(), &_width, &_height, &_BPP, 4);
+    if (data == nullptr) {
+        std::cout << stbi_failure_reason() << std::endl;
+    }
     ASSERT(data != nullptr);
 
     GLCall(glGenTextures(1, &_renderId));
@@ -26,7 +31,7 @@ Texture::Texture(const std::string& texturePath, TextureType t)
 
 Texture::~Texture()
 {
-    GLCall(glDeleteTextures(1, &_renderId));
+    // GLCall(glDeleteTextures(1, &_renderId));
 }
 
 void Texture::Bind(unsigned int slot)

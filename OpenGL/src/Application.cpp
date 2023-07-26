@@ -45,7 +45,6 @@ int main(void)
         Renderer renderer;
         renderer.SetDepthTest(true);
 
-        std::cout << "Start Render Loop" << std::endl;
         while (!glfwWindowShouldClose(window)) {
             float currentTime = (float)glfwGetTime();
             deltaTime = currentTime - lastTime;
@@ -68,7 +67,6 @@ int main(void)
             ourShader.SetUniformMat4f("view", view);
             ourShader.SetUniformMat4f("projection", projection);
 
-            std::cout << "Start Draw" << std::endl;
             ourModel.Draw(ourShader);
             
             // ------------------------------------------------
