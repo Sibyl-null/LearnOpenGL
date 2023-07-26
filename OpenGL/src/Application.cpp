@@ -36,14 +36,87 @@ int main(void)
 {
     GLFWwindow* window = OpenGLInit();
 
+    float cubeVertices[] = {
+        // positions          // texture Coords
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+
+    float planeVertices[] = {
+        // positions          // texture Coords
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+
+         5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
+         5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+    };
+
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        Shader ourShader("res/shaders/ModelLoading.shader");
-        Model ourModel("res/models/backpack/backpack.obj");
+        Shader shader("res/shaders/Basic.shader");
+
+        Texture cubeTexture("res/textures/marble.jpg", TextureType::texture_diffuse);
+        Texture floorTexture("res/textures/metal.png", TextureType::texture_diffuse);
+
+        VertexArray cubeVAO;
+        VertexBuffer cubeVBO(cubeVertices, sizeof(cubeVertices));
+        VertexBufferLayout layout;
+        layout.Push<float>(3);
+        layout.Push<float>(2);
+        cubeVAO.AddBuffer(cubeVBO, layout);
+
+        VertexArray planeVAO;
+        VertexBuffer planeVBO(planeVertices, sizeof(planeVertices));
+        planeVAO.AddBuffer(planeVBO, layout);
+
+        // ---------------------------------------------------
 
         Renderer renderer;
         renderer.SetDepthTest(true);
+
+        // GLCall(glDepthFunc(GL_ALWAYS));
 
         while (!glfwWindowShouldClose(window)) {
             float currentTime = (float)glfwGetTime();
@@ -54,21 +127,32 @@ int main(void)
             renderer.Clear();
             // ------------------------------------------------
 
-            ourShader.Bind();
-
+            shader.Bind();
             glm::mat4 model;
-            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
             glm::mat4 view = camera.GetViewMatrix();
-            glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()), 
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
-            
-            ourShader.SetUniformMat4f("model", model);
-            ourShader.SetUniformMat4f("view", view);
-            ourShader.SetUniformMat4f("projection", projection);
+            shader.SetUniformMat4f("view", view);
+            shader.SetUniformMat4f("projection", projection);
+            shader.SetUniform1i("texture1", 0);
 
-            ourModel.Draw(ourShader);
+            // cubes
+            cubeTexture.Bind(0);
+
+            model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+            shader.SetUniformMat4f("model", model);
+            renderer.DrawArrays(cubeVAO, shader, sizeof(cubeVertices) / sizeof(float));
+
+            model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
+            shader.SetUniformMat4f("model", model);
+            renderer.DrawArrays(cubeVAO, shader, sizeof(cubeVertices) / sizeof(float));
+
+            // floor
+            floorTexture.Bind(0);
             
+            shader.SetUniformMat4f("model", glm::mat4(1.0f));
+            renderer.DrawArrays(planeVAO, shader, sizeof(planeVertices) / sizeof(float));
+
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
             GLCall(glfwPollEvents());
