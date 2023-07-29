@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <map>
 #include "stb_image/stb_image.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -92,7 +93,7 @@ int main(void)
          5.0f, -0.5f, -5.0f,  2.0f, 2.0f
     };
 
-    float grassVertices[] = {
+    float transparentVertices[] = {
         // positions         // texture Coords
         0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
         0.0f, -0.5f,  0.0f,  0.0f,  0.0f,
@@ -103,7 +104,7 @@ int main(void)
         1.0f,  0.5f,  0.0f,  1.0f,  1.0f
     };
 
-    std::vector<glm::vec3> grassLocalPositions
+    std::vector<glm::vec3> windowPositions
     {
         glm::vec3(-1.5f, 0.0f, -0.48f),
         glm::vec3(1.5f, 0.0f, 0.51f),
@@ -112,6 +113,13 @@ int main(void)
         glm::vec3(0.5f, 0.0f, -0.6f)
     };
 
+    // sort the transparent windows before rendering
+    std::map<float, glm::vec3> sortedMap;
+    for (unsigned int i = 0; i < windowPositions.size(); ++i) {
+        float distance = glm::length(camera.GetPosition() - windowPositions[i]);
+        sortedMap[distance] = windowPositions[i];
+    }
+
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
@@ -119,8 +127,8 @@ int main(void)
 
         Texture cubeTexture("res/textures/marble.jpg", TextureType::texture_diffuse);
         Texture floorTexture("res/textures/metal.png", TextureType::texture_diffuse);
-        Texture grassTexture("res/textures/grass.png", TextureType::texture_diffuse);
-        grassTexture.SetWarpMode(GL_CLAMP_TO_EDGE);
+        Texture windowTexture("res/textures/blending_transparent_window.png", TextureType::texture_diffuse);
+        windowTexture.SetWarpMode(GL_CLAMP_TO_EDGE);
 
         VertexArray cubeVAO;
         VertexBuffer cubeVBO(cubeVertices, sizeof(cubeVertices));
@@ -133,14 +141,16 @@ int main(void)
         VertexBuffer planeVBO(planeVertices, sizeof(planeVertices));
         planeVAO.AddBuffer(planeVBO, layout);
 
-        VertexArray grassVAO;
-        VertexBuffer grassVBO(grassVertices, sizeof(grassVertices));
-        grassVAO.AddBuffer(grassVBO, layout);
+        VertexArray windowVAO;
+        VertexBuffer windowVBO(transparentVertices, sizeof(transparentVertices));
+        windowVAO.AddBuffer(windowVBO, layout);
 
         // ---------------------------------------------------
 
         Renderer renderer;
         renderer.SetDepthTest(true);
+        GLCall(glEnable(GL_BLEND));
+        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
         while (!glfwWindowShouldClose(window)) {
             float currentTime = (float)glfwGetTime();
@@ -176,12 +186,12 @@ int main(void)
             shader.SetUniformMat4f("model", model);
             renderer.DrawArrays(cubeVAO, shader, sizeof(cubeVertices) / sizeof(float));
 
-            // grass
-            grassTexture.Bind(0);
-            for (unsigned int i = 0; i < grassLocalPositions.size(); ++i) {
-                model = glm::translate(glm::mat4(1.0), grassLocalPositions[i]);
+            // windows
+            windowTexture.Bind(0);
+            for (auto it = sortedMap.rbegin(); it != sortedMap.rend(); ++it) {
+                model = glm::translate(glm::mat4(1.0), it->second);
                 shader.SetUniformMat4f("model", model);
-                renderer.DrawArrays(grassVAO, shader, sizeof(grassVertices) / sizeof(float));
+                renderer.DrawArrays(windowVAO, shader, sizeof(transparentVertices) / sizeof(float));
             }
 
             // ------------------------------------------------
