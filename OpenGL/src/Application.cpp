@@ -96,6 +96,7 @@ int main(void)
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
         Shader shader("res/shaders/Basic.shader");
+        Shader singleColorShader("res/shaders/SingleColor.shader");
 
         Texture cubeTexture("res/textures/marble.jpg", TextureType::texture_diffuse);
         Texture floorTexture("res/textures/metal.png", TextureType::texture_diffuse);
@@ -115,8 +116,8 @@ int main(void)
 
         Renderer renderer;
         renderer.SetDepthTest(true);
-
-        // GLCall(glDepthFunc(GL_ALWAYS));
+        renderer.SetStencilTest(true);
+        GLCall(glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE));
 
         while (!glfwWindowShouldClose(window)) {
             float currentTime = (float)glfwGetTime();
@@ -127,18 +128,32 @@ int main(void)
             renderer.Clear();
             // ------------------------------------------------
 
-            shader.Bind();
             glm::mat4 model;
             glm::mat4 view = camera.GetViewMatrix();
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
+
+            singleColorShader.Bind();
+            shader.SetUniformMat4f("view", view);
+            shader.SetUniformMat4f("projection", projection);
+
+            shader.Bind();
             shader.SetUniformMat4f("view", view);
             shader.SetUniformMat4f("projection", projection);
             shader.SetUniform1i("texture1", 0);
 
-            // cubes
-            cubeTexture.Bind(0);
+            // floor
+            GLCall(glStencilMask(0x00));
 
+            floorTexture.Bind(0);
+            shader.SetUniformMat4f("model", glm::mat4(1.0f));
+            renderer.DrawArrays(planeVAO, shader, sizeof(planeVertices) / sizeof(float));
+
+            // cubes
+            GLCall(glStencilFunc(GL_ALWAYS, 1, 0xFF));
+            GLCall(glStencilMask(0xFF));
+
+            cubeTexture.Bind(0);
             model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
             shader.SetUniformMat4f("model", model);
             renderer.DrawArrays(cubeVAO, shader, sizeof(cubeVertices) / sizeof(float));
@@ -147,11 +162,25 @@ int main(void)
             shader.SetUniformMat4f("model", model);
             renderer.DrawArrays(cubeVAO, shader, sizeof(cubeVertices) / sizeof(float));
 
-            // floor
-            floorTexture.Bind(0);
-            
-            shader.SetUniformMat4f("model", glm::mat4(1.0f));
-            renderer.DrawArrays(planeVAO, shader, sizeof(planeVertices) / sizeof(float));
+            // outlines
+            GLCall(glStencilFunc(GL_NOTEQUAL, 1, 0xFF));
+            GLCall(glStencilMask(0x00));
+            renderer.SetDepthTest(false);
+            float scale = 1.1f;     // 控制描边的厚度
+
+            singleColorShader.Bind();
+            model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, -1.0f));
+            model = glm::scale(model, glm::vec3(scale, scale, scale));
+            singleColorShader.SetUniformMat4f("model", model);
+            renderer.DrawArrays(cubeVAO, singleColorShader, sizeof(cubeVertices) / sizeof(float));
+
+            model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(scale, scale, scale));
+            singleColorShader.SetUniformMat4f("model", model);
+            renderer.DrawArrays(cubeVAO, singleColorShader, sizeof(cubeVertices) / sizeof(float));
+
+            GLCall(glStencilMask(0xFF));
+            renderer.SetDepthTest(true);
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
@@ -179,7 +208,7 @@ GLFWwindow* OpenGLInit() {
     glfwSetCursorPosCallback(window, MouseCallback);
     glfwSetScrollCallback(window, ScrollCallback);
 
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (glewInit() != GLEW_OK)
         throw std::exception("Failed to init GLEW");

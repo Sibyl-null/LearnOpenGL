@@ -22,6 +22,8 @@ void Renderer::Clear() const
     GLbitfield clealMask = GL_COLOR_BUFFER_BIT;
     if (_enableDepthTest)
         clealMask = clealMask | GL_DEPTH_BUFFER_BIT;
+    if (_enableStencilTest)
+        clealMask = clealMask | GL_STENCIL_BUFFER_BIT;
 
     GLCall(glClear(clealMask));
 }
@@ -35,6 +37,17 @@ void Renderer::SetDepthTest(bool enable)
     }
     else {
         GLCall(glDisable(GL_DEPTH_TEST));
+    }
+}
+
+void Renderer::SetStencilTest(bool enable)
+{
+    _enableStencilTest = enable;
+    if (_enableStencilTest) {
+        GLCall(glEnable(GL_STENCIL_TEST));
+    }
+    else {
+        GLCall(glDisable(GL_STENCIL_TEST));
     }
 }
 

@@ -17,9 +17,11 @@ bool GLLogCall(const char* function, const char* file, int line);
 class Renderer {
 private:
     bool _enableDepthTest;
+    bool _enableStencilTest;
 public:
     void Clear() const;
     void SetDepthTest(bool enable);
+    void SetStencilTest(bool enable);
     void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
     void DrawArrays(const VertexArray& va, const Shader& shader, const int count) const;
 };
