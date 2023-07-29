@@ -24,6 +24,7 @@ public:
 
 	void Bind(unsigned int slot = 0);
 	void UnBind() const;
+	void SetWarpMode(int mode);
 
 	int GetWidth() const { return _width; }
 	int GetHeight() const { return _height; }

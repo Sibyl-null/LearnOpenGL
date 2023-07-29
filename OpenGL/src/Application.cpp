@@ -92,14 +92,35 @@ int main(void)
          5.0f, -0.5f, -5.0f,  2.0f, 2.0f
     };
 
+    float grassVertices[] = {
+        // positions         // texture Coords
+        0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
+        0.0f, -0.5f,  0.0f,  0.0f,  0.0f,
+        1.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+
+        0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
+        1.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+        1.0f,  0.5f,  0.0f,  1.0f,  1.0f
+    };
+
+    std::vector<glm::vec3> grassLocalPositions
+    {
+        glm::vec3(-1.5f, 0.0f, -0.48f),
+        glm::vec3(1.5f, 0.0f, 0.51f),
+        glm::vec3(0.0f, 0.0f, 0.7f),
+        glm::vec3(-0.3f, 0.0f, -2.3f),
+        glm::vec3(0.5f, 0.0f, -0.6f)
+    };
+
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
         Shader shader("res/shaders/Basic.shader");
-        Shader singleColorShader("res/shaders/SingleColor.shader");
 
         Texture cubeTexture("res/textures/marble.jpg", TextureType::texture_diffuse);
         Texture floorTexture("res/textures/metal.png", TextureType::texture_diffuse);
+        Texture grassTexture("res/textures/grass.png", TextureType::texture_diffuse);
+        grassTexture.SetWarpMode(GL_CLAMP_TO_EDGE);
 
         VertexArray cubeVAO;
         VertexBuffer cubeVBO(cubeVertices, sizeof(cubeVertices));
@@ -112,12 +133,14 @@ int main(void)
         VertexBuffer planeVBO(planeVertices, sizeof(planeVertices));
         planeVAO.AddBuffer(planeVBO, layout);
 
+        VertexArray grassVAO;
+        VertexBuffer grassVBO(grassVertices, sizeof(grassVertices));
+        grassVAO.AddBuffer(grassVBO, layout);
+
         // ---------------------------------------------------
 
         Renderer renderer;
         renderer.SetDepthTest(true);
-        renderer.SetStencilTest(true);
-        GLCall(glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE));
 
         while (!glfwWindowShouldClose(window)) {
             float currentTime = (float)glfwGetTime();
@@ -133,26 +156,17 @@ int main(void)
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
 
-            singleColorShader.Bind();
-            shader.SetUniformMat4f("view", view);
-            shader.SetUniformMat4f("projection", projection);
-
             shader.Bind();
             shader.SetUniformMat4f("view", view);
             shader.SetUniformMat4f("projection", projection);
             shader.SetUniform1i("texture1", 0);
 
             // floor
-            GLCall(glStencilMask(0x00));
-
             floorTexture.Bind(0);
             shader.SetUniformMat4f("model", glm::mat4(1.0f));
             renderer.DrawArrays(planeVAO, shader, sizeof(planeVertices) / sizeof(float));
 
             // cubes
-            GLCall(glStencilFunc(GL_ALWAYS, 1, 0xFF));
-            GLCall(glStencilMask(0xFF));
-
             cubeTexture.Bind(0);
             model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
             shader.SetUniformMat4f("model", model);
@@ -162,25 +176,13 @@ int main(void)
             shader.SetUniformMat4f("model", model);
             renderer.DrawArrays(cubeVAO, shader, sizeof(cubeVertices) / sizeof(float));
 
-            // outlines
-            GLCall(glStencilFunc(GL_NOTEQUAL, 1, 0xFF));
-            GLCall(glStencilMask(0x00));
-            renderer.SetDepthTest(false);
-            float scale = 1.1f;     // 控制描边的厚度
-
-            singleColorShader.Bind();
-            model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, -1.0f));
-            model = glm::scale(model, glm::vec3(scale, scale, scale));
-            singleColorShader.SetUniformMat4f("model", model);
-            renderer.DrawArrays(cubeVAO, singleColorShader, sizeof(cubeVertices) / sizeof(float));
-
-            model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
-            model = glm::scale(model, glm::vec3(scale, scale, scale));
-            singleColorShader.SetUniformMat4f("model", model);
-            renderer.DrawArrays(cubeVAO, singleColorShader, sizeof(cubeVertices) / sizeof(float));
-
-            GLCall(glStencilMask(0xFF));
-            renderer.SetDepthTest(true);
+            // grass
+            grassTexture.Bind(0);
+            for (unsigned int i = 0; i < grassLocalPositions.size(); ++i) {
+                model = glm::translate(glm::mat4(1.0), grassLocalPositions[i]);
+                shader.SetUniformMat4f("model", model);
+                renderer.DrawArrays(grassVAO, shader, sizeof(grassVertices) / sizeof(float));
+            }
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));

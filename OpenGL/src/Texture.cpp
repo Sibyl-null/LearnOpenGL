@@ -45,3 +45,9 @@ void Texture::UnBind() const
 {
     GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 }
+
+void Texture::SetWarpMode(int mode) {
+    GLCall(glBindTexture(GL_TEXTURE_2D, _renderId));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode));
+}
