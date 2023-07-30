@@ -17,7 +17,7 @@ bool GLLogCall(const char* function, const char* file, int line) {
 
 void Renderer::Clear() const
 {
-    GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+    GLCall(glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a));
 
     GLbitfield clealMask = GL_COLOR_BUFFER_BIT;
     if (_enableDepthTest)
@@ -49,6 +49,11 @@ void Renderer::SetStencilTest(bool enable)
     else {
         GLCall(glDisable(GL_STENCIL_TEST));
     }
+}
+
+void Renderer::SetClearColor(glm::vec4 color)
+{
+    _clearColor = color;
 }
 
 void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const

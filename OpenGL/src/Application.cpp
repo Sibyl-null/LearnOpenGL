@@ -93,42 +93,25 @@ int main(void)
          5.0f, -0.5f, -5.0f,  2.0f, 2.0f
     };
 
-    float transparentVertices[] = {
-        // positions         // texture Coords
-        0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
-        0.0f, -0.5f,  0.0f,  0.0f,  0.0f,
-        1.0f, -0.5f,  0.0f,  1.0f,  0.0f,
+    float quadVertices[] = {
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
 
-        0.0f,  0.5f,  0.0f,  0.0f,  1.0f,
-        1.0f, -0.5f,  0.0f,  1.0f,  0.0f,
-        1.0f,  0.5f,  0.0f,  1.0f,  1.0f
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
     };
-
-    std::vector<glm::vec3> windowPositions
-    {
-        glm::vec3(-1.5f, 0.0f, -0.48f),
-        glm::vec3(1.5f, 0.0f, 0.51f),
-        glm::vec3(0.0f, 0.0f, 0.7f),
-        glm::vec3(-0.3f, 0.0f, -2.3f),
-        glm::vec3(0.5f, 0.0f, -0.6f)
-    };
-
-    // sort the transparent windows before rendering
-    std::map<float, glm::vec3> sortedMap;
-    for (unsigned int i = 0; i < windowPositions.size(); ++i) {
-        float distance = glm::length(camera.GetPosition() - windowPositions[i]);
-        sortedMap[distance] = windowPositions[i];
-    }
 
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        Shader shader("res/shaders/Basic.shader");
+        Shader basicShader("res/shaders/Basic.shader");
+        Shader screenShader("res/shaders/Screen.shader");
 
-        Texture cubeTexture("res/textures/marble.jpg", TextureType::texture_diffuse);
+        Texture cubeTexture("res/textures/container.jpg", TextureType::texture_diffuse);
         Texture floorTexture("res/textures/metal.png", TextureType::texture_diffuse);
-        Texture windowTexture("res/textures/blending_transparent_window.png", TextureType::texture_diffuse);
-        windowTexture.SetWarpMode(GL_CLAMP_TO_EDGE);
 
         VertexArray cubeVAO;
         VertexBuffer cubeVBO(cubeVertices, sizeof(cubeVertices));
@@ -141,16 +124,47 @@ int main(void)
         VertexBuffer planeVBO(planeVertices, sizeof(planeVertices));
         planeVAO.AddBuffer(planeVBO, layout);
 
-        VertexArray windowVAO;
-        VertexBuffer windowVBO(transparentVertices, sizeof(transparentVertices));
-        windowVAO.AddBuffer(windowVBO, layout);
+        VertexArray quadVAO;
+        VertexBuffer quadVBO(quadVertices, sizeof(quadVertices));
+        VertexBufferLayout quadLayout;
+        quadLayout.Push<float>(2);
+        quadLayout.Push<float>(2);
+        quadVAO.AddBuffer(quadVBO, quadLayout);
+
+        // ---------------------------------------------------
+
+        // 创建帧缓冲
+        unsigned int framebuffer;
+        GLCall(glGenFramebuffers(1, &framebuffer));
+        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer));
+
+        // 创建纹理附件，并作为颜色附件附加到帧缓冲中
+        unsigned int textureColorbuffer;
+        GLCall(glGenTextures(1, &textureColorbuffer));
+        GLCall(glBindTexture(GL_TEXTURE_2D, textureColorbuffer));
+        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Scr_Width, Scr_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+        GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0));
+
+        // 创建深度和模板渲染缓冲对象，并附加到帧缓冲中
+        unsigned int rbo;
+        GLCall(glGenRenderbuffers(1, &rbo));
+        GLCall(glBindRenderbuffer(GL_RENDERBUFFER, rbo));
+        GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Scr_Width, Scr_Height));
+
+        GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo));
+
+        // 检查帧缓冲是否是完整的，解绑帧缓冲
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "Error:: Framebuffer is not complete" << std::endl;
+        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
         // ---------------------------------------------------
 
         Renderer renderer;
-        renderer.SetDepthTest(true);
-        GLCall(glEnable(GL_BLEND));
-        GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         while (!glfwWindowShouldClose(window)) {
             float currentTime = (float)glfwGetTime();
@@ -158,41 +172,50 @@ int main(void)
             lastTime = currentTime;
 
             ProcessInput(window);
-            renderer.Clear();
             // ------------------------------------------------
+
+            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer));
+            renderer.SetDepthTest(true);
+            renderer.SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+            renderer.Clear();
 
             glm::mat4 model;
             glm::mat4 view = camera.GetViewMatrix();
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
 
-            shader.Bind();
-            shader.SetUniformMat4f("view", view);
-            shader.SetUniformMat4f("projection", projection);
-            shader.SetUniform1i("texture1", 0);
+            basicShader.Bind();
+            basicShader.SetUniformMat4f("view", view);
+            basicShader.SetUniformMat4f("projection", projection);
+            basicShader.SetUniform1i("texture1", 0);
 
             // floor
             floorTexture.Bind(0);
-            shader.SetUniformMat4f("model", glm::mat4(1.0f));
-            renderer.DrawArrays(planeVAO, shader, sizeof(planeVertices) / sizeof(float));
+            basicShader.SetUniformMat4f("model", glm::mat4(1.0f));
+            renderer.DrawArrays(planeVAO, basicShader, sizeof(planeVertices) / sizeof(float));
 
             // cubes
             cubeTexture.Bind(0);
             model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-            shader.SetUniformMat4f("model", model);
-            renderer.DrawArrays(cubeVAO, shader, sizeof(cubeVertices) / sizeof(float));
+            basicShader.SetUniformMat4f("model", model);
+            renderer.DrawArrays(cubeVAO, basicShader, sizeof(cubeVertices) / sizeof(float));
 
             model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f));
-            shader.SetUniformMat4f("model", model);
-            renderer.DrawArrays(cubeVAO, shader, sizeof(cubeVertices) / sizeof(float));
+            basicShader.SetUniformMat4f("model", model);
+            renderer.DrawArrays(cubeVAO, basicShader, sizeof(cubeVertices) / sizeof(float));
 
-            // windows
-            windowTexture.Bind(0);
-            for (auto it = sortedMap.rbegin(); it != sortedMap.rend(); ++it) {
-                model = glm::translate(glm::mat4(1.0), it->second);
-                shader.SetUniformMat4f("model", model);
-                renderer.DrawArrays(windowVAO, shader, sizeof(transparentVertices) / sizeof(float));
-            }
+            // ------------------------------------------------
+
+            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+            renderer.SetDepthTest(false);
+            renderer.SetClearColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+            renderer.Clear();
+
+            screenShader.Bind();
+            screenShader.SetUniform1i("texture1", 0);
+            GLCall(glActiveTexture(GL_TEXTURE0));
+            GLCall(glBindTexture(GL_TEXTURE_2D, textureColorbuffer));
+            renderer.DrawArrays(quadVAO, screenShader, sizeof(quadVertices) / sizeof(float));
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));

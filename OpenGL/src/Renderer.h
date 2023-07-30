@@ -18,10 +18,12 @@ class Renderer {
 private:
     bool _enableDepthTest;
     bool _enableStencilTest;
+    glm::vec4 _clearColor;
 public:
     void Clear() const;
     void SetDepthTest(bool enable);
     void SetStencilTest(bool enable);
+    void SetClearColor(glm::vec4 color);
     void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
     void DrawArrays(const VertexArray& va, const Shader& shader, const int count) const;
 };
