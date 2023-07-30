@@ -18,7 +18,7 @@ class Renderer {
 private:
     bool _enableDepthTest;
     bool _enableStencilTest;
-    glm::vec4 _clearColor;
+    glm::vec4 _clearColor = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
 public:
     void Clear() const;
     void SetDepthTest(bool enable);
