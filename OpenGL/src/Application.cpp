@@ -16,13 +16,13 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Model.h"
+#include "CubeMap.h"
 
 GLFWwindow* OpenGLInit();
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void ProcessInput(GLFWwindow* window);
 void MouseCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-unsigned int LoadCubemap(std::vector<std::string>& faces);
 
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
@@ -141,7 +141,7 @@ int main(void)
             "res/textures/skybox/front.jpg",
             "res/textures/skybox/back.jpg"
         };
-        unsigned int skyBoxTexture = LoadCubemap(faces);
+        CubeMap skyboxMap(faces);
 
         // ---------------------------------------------------
 
@@ -198,7 +198,7 @@ int main(void)
 
             // skybox
             GLCall(glDepthFunc(GL_LEQUAL));
-            GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTexture));
+            skyboxMap.Bind();
             renderer.DrawArrays(skyboxVAO, skyboxShader, sizeof(skyboxVertices) / sizeof(float));
             GLCall(glDepthFunc(GL_LESS));
 
@@ -254,33 +254,4 @@ void MouseCallback(GLFWwindow* window, double xpos, double ypos) {
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     camera.ProcessMouseScroll(yoffset);
-}
-
-unsigned int LoadCubemap(std::vector<std::string>& faces) {
-    unsigned int textureID;
-    GLCall(glGenTextures(1, &textureID));
-    GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, textureID));
-
-    int width, height, nrChannels;
-    for (unsigned int i = 0; i < faces.size(); ++i) {
-        stbi_set_flip_vertically_on_load(false);
-        unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-        if (data == nullptr) {
-            std::cout << stbi_failure_reason() << std::endl;
-        }
-        ASSERT(data != nullptr);
-        std::cout << "load " << faces[i] << std::endl;
-
-        GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
-            width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
-
-        stbi_image_free(data);
-    }
-
-    return textureID;
 }
