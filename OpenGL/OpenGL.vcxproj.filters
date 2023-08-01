@@ -62,6 +62,9 @@
     <None Include="res\shaders\Screen.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="res\shaders\EnvironmentMapping.shader" />
+    <None Include="res\shaders\SingleColor\RedColor.Shader" />
+    <None Include="res\shaders\SingleColor\BlueColor.Shader" />
+    <None Include="res\shaders\SingleColor\GreenColor.Shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VertexBuffer.h">

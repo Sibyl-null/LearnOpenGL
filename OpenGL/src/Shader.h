@@ -23,6 +23,8 @@ public:
 	void Bind() const;
 	void UnBind() const;
 
+	unsigned int GetId() const { return _renderId; }
+
 	void SetUniform1f(const std::string& name, float v);
 	void SetUniform2f(const std::string& name, float v0, float v2);
 	void SetUniform2f(const std::string& name, glm::vec2 v);

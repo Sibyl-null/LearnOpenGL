@@ -169,6 +169,9 @@
     <None Include="res\shaders\ModelLoading.shader" />
     <None Include="res\shaders\Screen.shader" />
     <None Include="res\shaders\SingleColor.shader" />
+    <None Include="res\shaders\SingleColor\BlueColor.Shader" />
+    <None Include="res\shaders\SingleColor\GreenColor.Shader" />
+    <None Include="res\shaders\SingleColor\RedColor.Shader" />
     <None Include="res\shaders\Skybox.shader" />
   </ItemGroup>
   <ItemGroup>
