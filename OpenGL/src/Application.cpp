@@ -38,88 +38,23 @@ int main(void)
 {
     GLFWwindow* window = OpenGLInit();
 
-    float cubeVertices[] = {
-        // positions         
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-
-        -0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f, -0.5f,
-
-        -0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-         0.5f,  0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
+    float points[] = {
+        -0.5f,  0.5f, // 左上
+         0.5f,  0.5f, // 右上
+         0.5f, -0.5f, // 右下
+        -0.5f, -0.5f  // 左下
     };
 
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        Shader redShader("res/shaders/SingleColor/RedColor.shader");
-        Shader greenShader("res/shaders/SingleColor/GreenColor.shader");
-        Shader blueShader("res/shaders/SingleColor/BlueColor.shader");
+        Shader shader("res/shaders/SingleColor/GreenColor.Shader");
 
-        VertexArray cubeVAO;
-        VertexBuffer cubeVBO(cubeVertices, sizeof(cubeVertices));
+        VertexArray vao;
+        VertexBuffer vbo(points, sizeof(points));
         VertexBufferLayout layout;
-        layout.Push<float>(3);
-        cubeVAO.AddBuffer(cubeVBO, layout);
-
-        // ---------------------------------------------------
-
-        unsigned int redUniformIndex = glGetUniformBlockIndex(redShader.GetId(), "Matrices");
-        unsigned int greenUniformIndex = glGetUniformBlockIndex(greenShader.GetId(), "Matrices");
-        unsigned int blueUniformIndex = glGetUniformBlockIndex(blueShader.GetId(), "Matrices");
-
-        GLCall(glUniformBlockBinding(redShader.GetId(), redUniformIndex, 0));
-        GLCall(glUniformBlockBinding(greenShader.GetId(), greenUniformIndex, 0));
-        GLCall(glUniformBlockBinding(blueShader.GetId(), blueUniformIndex, 0));
-
-        unsigned int uboMatrices;
-        GLCall(glGenBuffers(1, &uboMatrices));
-
-        GLCall(glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices));
-        GLCall(glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW));
-        GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
-
-        GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4)));
-
-        glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
-            (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
-        GLCall(glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices));
-        GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection)));
-        GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+        layout.Push<float>(2);
+        vao.AddBuffer(vbo, layout);
 
         // ---------------------------------------------------
 
@@ -135,26 +70,9 @@ int main(void)
             renderer.Clear();
             // ------------------------------------------------
 
-            glm::mat4 view = camera.GetViewMatrix();
-            GLCall(glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices));
-            GLCall(glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4),
-                sizeof(glm::mat4), glm::value_ptr(view)));
-            GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
-
-            redShader.Bind();
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.75f, 0.75f, 0.0f));
-            redShader.SetUniformMat4f("model", model);
-            renderer.DrawArrays(cubeVAO, redShader, sizeof(cubeVertices) / sizeof(float));
-
-            greenShader.Bind();
-            model = glm::translate(glm::mat4(1.0f), glm::vec3(0.75f, 0.75f, 0.0f));
-            greenShader.SetUniformMat4f("model", model);
-            renderer.DrawArrays(cubeVAO, greenShader, sizeof(cubeVertices) / sizeof(float));
-
-            blueShader.Bind();
-            model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.75f, -0.75f, 0.0f));
-            blueShader.SetUniformMat4f("model", model);
-            renderer.DrawArrays(cubeVAO, blueShader, sizeof(cubeVertices) / sizeof(float));
+            shader.Bind();
+            vao.Bind();
+            GLCall(glDrawArrays(GL_POINTS, 0, 4));
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));

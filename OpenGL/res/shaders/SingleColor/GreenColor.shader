@@ -1,22 +1,25 @@
 #shader vertex
 #version 330 core
-layout(location = 0) in vec3 aPos;
-
-layout(std140) uniform Matrices
-{
-    mat4 projection;
-    mat4 view;
-};
-uniform mat4 model;
+layout(location = 0) in vec2 aPos;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+}
+
+#shader geometry
+#version 330 core
+layout(points) in;
+layout(points, max_vertices = 1) out;
+
+void main() {
+    gl_Position = gl_in[0].gl_Position;
+    EmitVertex();
+    EndPrimitive();
 }
 
 #shader fragment
 #version 330 core
-
 out vec4 FragColor;
 
 void main()
