@@ -39,10 +39,10 @@ int main(void)
     GLFWwindow* window = OpenGLInit();
 
     float points[] = {
-        -0.5f,  0.5f, // 左上
-         0.5f,  0.5f, // 右上
-         0.5f, -0.5f, // 右下
-        -0.5f, -0.5f  // 左下
+        -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 左上
+         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 右上
+         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // 右下
+        -0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // 左下
     };
 
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
@@ -54,6 +54,7 @@ int main(void)
         VertexBuffer vbo(points, sizeof(points));
         VertexBufferLayout layout;
         layout.Push<float>(2);
+        layout.Push<float>(3);
         vao.AddBuffer(vbo, layout);
 
         // ---------------------------------------------------
