@@ -30,7 +30,7 @@ const unsigned int Scr_Height = 600;
 static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
 static float lastTime = 0.0f;   // 上一帧的时间
 
-static Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
+static Camera camera(glm::vec3(0.0f, 5.0f, 25.0f));
 
 static glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
@@ -38,24 +38,12 @@ int main(void)
 {
     GLFWwindow* window = OpenGLInit();
 
-    float points[] = {
-        -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, // 左上
-         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // 右上
-         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // 右下
-        -0.5f, -0.5f, 1.0f, 1.0f, 0.0f  // 左下
-    };
-
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        Shader shader("res/shaders/SingleColor/GreenColor.Shader");
+        Shader shader("res/shaders/ModelLoading.shader");
 
-        VertexArray vao;
-        VertexBuffer vbo(points, sizeof(points));
-        VertexBufferLayout layout;
-        layout.Push<float>(2);
-        layout.Push<float>(3);
-        vao.AddBuffer(vbo, layout);
+        Model ourModel("res/models/nanosuit/nanosuit.obj");
 
         // ---------------------------------------------------
 
@@ -72,8 +60,20 @@ int main(void)
             // ------------------------------------------------
 
             shader.Bind();
-            vao.Bind();
-            GLCall(glDrawArrays(GL_POINTS, 0, 4));
+
+            glm::mat4 model;
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+            glm::mat4 view = camera.GetViewMatrix();
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
+                (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
+
+            shader.SetUniformMat4f("model", model);
+            shader.SetUniformMat4f("view", view);
+            shader.SetUniformMat4f("projection", projection);
+            shader.SetUniform1f("time", (float)glfwGetTime());
+
+            ourModel.Draw(shader);
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));

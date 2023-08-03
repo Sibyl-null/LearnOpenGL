@@ -42,4 +42,3 @@ private:
 		const std::string& fragmentShaderSource, const std::string& geometryShaderSource);
 	unsigned int CompileShader(unsigned int shaderType, const std::string& shaderSources);
 };
-
