@@ -41,7 +41,8 @@ int main(void)
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        Shader shader("res/shaders/ModelLoading.shader");
+        Shader ourShader("res/shaders/ModelLoading.shader");
+        Shader normalShader("res/shaders/NormalVisual.shader");
 
         Model ourModel("res/models/nanosuit/nanosuit.obj");
 
@@ -59,21 +60,22 @@ int main(void)
             renderer.Clear();
             // ------------------------------------------------
 
-            shader.Bind();
-
             glm::mat4 model;
-            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
             glm::mat4 view = camera.GetViewMatrix();
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
 
-            shader.SetUniformMat4f("model", model);
-            shader.SetUniformMat4f("view", view);
-            shader.SetUniformMat4f("projection", projection);
-            shader.SetUniform1f("time", (float)glfwGetTime());
+            ourShader.Bind();
+            ourShader.SetUniformMat4f("model", model);
+            ourShader.SetUniformMat4f("view", view);
+            ourShader.SetUniformMat4f("projection", projection);
+            ourModel.Draw(ourShader);
 
-            ourModel.Draw(shader);
+            normalShader.Bind();
+            normalShader.SetUniformMat4f("model", model);
+            normalShader.SetUniformMat4f("view", view);
+            normalShader.SetUniformMat4f("projection", projection);
+            ourModel.Draw(normalShader);
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
