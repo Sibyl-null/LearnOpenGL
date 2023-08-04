@@ -75,6 +75,15 @@ int main(void)
         quadLayout.Push<float>(3);
         quadVAO.AddBuffer(quadVBO, quadLayout);
 
+        unsigned int instanceVBO;
+        GLCall(glGenBuffers(1, &instanceVBO));
+        GLCall(glBindBuffer(GL_ARRAY_BUFFER, instanceVBO));
+        GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(translations), translations, GL_STATIC_DRAW));
+
+        GLCall(glEnableVertexAttribArray(2));
+        GLCall(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0));
+        GLCall(glVertexAttribDivisor(2, 1));
+
         // ---------------------------------------------------
 
         Renderer renderer;
@@ -90,12 +99,6 @@ int main(void)
             // ------------------------------------------------
 
             instancedShader.Bind();
-            for (unsigned int i = 0; i < 100; i++)
-            {
-                std::string uniformName = "offsets[" + std::to_string(i) + "]";
-                instancedShader.SetUniform2f(uniformName, translations[i]);
-            }
-
             quadVAO.Bind();
             GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100));
 
