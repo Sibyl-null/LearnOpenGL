@@ -38,13 +38,42 @@ int main(void)
 {
     GLFWwindow* window = OpenGLInit();
 
+    float quadVertices[] = {
+        // 位置          // 颜色
+        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+        -0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
+
+        -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+         0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+         0.05f,  0.05f,  0.0f, 1.0f, 1.0f
+    };
+
+    glm::vec2 translations[100];
+    int index = 0;
+    float offset = 0.1f;
+    for (int y = -10; y < 10; y += 2)
+    {
+        for (int x = -10; x < 10; x += 2)
+        {
+            glm::vec2 translation;
+            translation.x = (float)x / 10.0f + offset;
+            translation.y = (float)y / 10.0f + offset;
+            translations[index++] = translation;
+        }
+    }
+
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        Shader ourShader("res/shaders/ModelLoading.shader");
-        Shader normalShader("res/shaders/NormalVisual.shader");
+        Shader instancedShader("res/shaders/Instanced.shader");
 
-        Model ourModel("res/models/nanosuit/nanosuit.obj");
+        VertexArray quadVAO;
+        VertexBuffer quadVBO(quadVertices, sizeof(quadVertices));
+        VertexBufferLayout quadLayout;
+        quadLayout.Push<float>(2);
+        quadLayout.Push<float>(3);
+        quadVAO.AddBuffer(quadVBO, quadLayout);
 
         // ---------------------------------------------------
 
@@ -60,22 +89,15 @@ int main(void)
             renderer.Clear();
             // ------------------------------------------------
 
-            glm::mat4 model;
-            glm::mat4 view = camera.GetViewMatrix();
-            glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
-                (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
+            instancedShader.Bind();
+            for (unsigned int i = 0; i < 100; i++)
+            {
+                std::string uniformName = "offsets[" + std::to_string(i) + "]";
+                instancedShader.SetUniform2f(uniformName, translations[i]);
+            }
 
-            ourShader.Bind();
-            ourShader.SetUniformMat4f("model", model);
-            ourShader.SetUniformMat4f("view", view);
-            ourShader.SetUniformMat4f("projection", projection);
-            ourModel.Draw(ourShader);
-
-            normalShader.Bind();
-            normalShader.SetUniformMat4f("model", model);
-            normalShader.SetUniformMat4f("view", view);
-            normalShader.SetUniformMat4f("projection", projection);
-            ourModel.Draw(normalShader);
+            quadVAO.Bind();
+            GLCall(glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100));
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
