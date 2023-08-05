@@ -7,12 +7,13 @@
 class Model
 {
 public:
+    std::vector<Mesh> meshes;
+    std::vector<Texture> textures_loaded;
+
     Model(std::string path);
     void Draw(Shader& shader);
 private:
-    std::vector<Mesh> _meshes;
     std::string _directory;
-    std::vector<Texture> _textures_loaded;
 
     void LoadModel(std::string path);
     void ProcessNode(aiNode* node, const aiScene* scene);
