@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -164,12 +164,14 @@
     <None Include="packages.config" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\Cube.shader" />
+    <None Include="res\shaders\DebugDepthQuad.shader" />
     <None Include="res\shaders\EnvironmentMapping.shader" />
     <None Include="res\shaders\Instanced.shader" />
     <None Include="res\shaders\Light.shader" />
     <None Include="res\shaders\ModelLoading.shader" />
     <None Include="res\shaders\NormalVisual.shader" />
     <None Include="res\shaders\Screen.shader" />
+    <None Include="res\shaders\SimpleDepth.shader" />
     <None Include="res\shaders\SingleColor.shader" />
     <None Include="res\shaders\SingleColor\BlueColor.Shader" />
     <None Include="res\shaders\SingleColor\GreenColor.Shader" />
