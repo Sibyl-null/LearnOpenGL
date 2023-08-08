@@ -26,6 +26,10 @@ void Camera::ProcessKeyboard(GLFWwindow* window, float deltaTime)
         _position -= cameraSpeed * glm::normalize(glm::cross(_lookAtDir, _upDir));
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         _position += cameraSpeed * glm::normalize(glm::cross(_lookAtDir, _upDir));
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        _position += cameraSpeed * glm::vec3(0.0, 1.0, 0.0);
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        _position -= cameraSpeed * glm::vec3(0.0, 1.0, 0.0);
 }
 
 void Camera::ProcessMouseMovement(double xpos, double ypos) {
