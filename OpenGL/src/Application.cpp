@@ -133,10 +133,11 @@ int main(void)
 
         // ---------------------------------------------------
 
+        Shader basicShader("res/shaders/Basic.shader");
         Shader simpleDepthShader("res/shaders/SimpleDepth.shader");
         Shader debugDepthQuadShader("res/shaders/DebugDepthQuad.shader");
 
-        // Texture woodTexture("res/textures/wood.png", TextureType::texture_diffuse);
+        Texture woodTexture("res/textures/wood.png", TextureType::texture_diffuse);
 
         // ---------------------------------------------------
 
@@ -189,15 +190,28 @@ int main(void)
             RenderScene(simpleDepthShader, renderer, planeVAO, cubeVAO);
             GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
-            // 2. 将深度贴图渲染出来
+            // 2. 渲染场景
             GLCall(glViewport(0, 0, Scr_Width, Scr_Height));
             GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
 
-            debugDepthQuadShader.Bind();
-            debugDepthQuadShader.SetUniform1i("depthMap", 0);
-            GLCall(glActiveTexture(GL_TEXTURE0));
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()), 
+                (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+
+            basicShader.Bind();
+            basicShader.SetUniformMat4f("view", view);
+            basicShader.SetUniformMat4f("projection", projection);
+            basicShader.SetUniformMat4f("lightSpaceMatrix", lightSpaceMatrix);
+            basicShader.SetUniform3f("lightPos", lightPos);
+            basicShader.SetUniform3f("viewPos", camera.GetPosition());
+            basicShader.SetUniform1i("diffuseTexture", 0);
+            basicShader.SetUniform1i("shadowMap", 1);
+
+            woodTexture.Bind(0);
+            GLCall(glActiveTexture(GL_TEXTURE1));
             GLCall(glBindTexture(GL_TEXTURE_2D, depthMap));
-            renderer.DrawArrays(quadVAO, debugDepthQuadShader, 6);
+
+            RenderScene(basicShader, renderer, planeVAO, cubeVAO);
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
