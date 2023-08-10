@@ -8,21 +8,22 @@ out VS_OUT{
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-    vec4 FragPosLightSpace;
 } vs_out;
 
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-uniform mat4 lightSpaceMatrix;
+uniform bool reverse_normals;
 
 void main()
 {
    gl_Position = projection * view * model * vec4(aPos, 1.0);
    vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
-   vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
+   if (reverse_normals)
+       vs_out.Normal = transpose(inverse(mat3(model))) * (-1.0 * aNormal);
+   else
+       vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
    vs_out.TexCoords = aTexCoords;
-   vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
 };
 
 
@@ -35,34 +36,27 @@ in VS_OUT{
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-    vec4 FragPosLightSpace;
 } fs_in;
 
 uniform sampler2D diffuseTexture;
-uniform sampler2D shadowMap;
+uniform samplerCube depthMap;
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
+uniform float far_plane;
 
-float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-    float currentDepth = projCoords.z;
-
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-
-    float shadow = 0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-        }
-    }
-    shadow /= 9.0;
-
-    if (projCoords.z > 1.0)
-        shadow = 0.0;
+float ShadowCalculation(vec3 fragPos) {
+    // Get vector between fragment position and light position
+    vec3 lightToFrag = fragPos - lightPos;
+    // Use the light to fragment vector to sample from the depth map    
+    float closestDepth = texture(depthMap, lightToFrag).r;
+    // It is currently in linear range between [0,1]. Re-transform back to original value
+    closestDepth *= far_plane;
+    // Now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(lightToFrag);
+    // Now test for shadows
+    float bias = 0.05;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
 
     return shadow;
 }
@@ -73,7 +67,7 @@ void main()
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightColor = vec3(0.3);
     // ambient
-    vec3 ambient = 0.5 * lightColor;
+    vec3 ambient = 0.3 * lightColor;
     // diffuse
     vec3 lightDir = normalize(lightPos - fs_in.FragPos);
     float diff = max(dot(lightDir, normal), 0.0);
@@ -87,7 +81,7 @@ void main()
     vec3 specular = spec * lightColor;
 
     // 计算阴影
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, normal, lightDir);
+    float shadow = ShadowCalculation(fs_in.FragPos);
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
 
     FragColor = vec4(lighting, 1.0f);

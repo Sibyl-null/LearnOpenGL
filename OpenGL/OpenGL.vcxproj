@@ -172,6 +172,7 @@
     <None Include="res\shaders\NormalVisual.shader" />
     <None Include="res\shaders\Screen.shader" />
     <None Include="res\shaders\SimpleDepth.shader" />
+    <None Include="res\shaders\SimplePointDepth.shader" />
     <None Include="res\shaders\SingleColor.shader" />
     <None Include="res\shaders\SingleColor\BlueColor.Shader" />
     <None Include="res\shaders\SingleColor\GreenColor.Shader" />

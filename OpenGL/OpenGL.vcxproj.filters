@@ -67,6 +67,9 @@
     <None Include="res\shaders\SingleColor\GreenColor.Shader" />
     <None Include="res\shaders\NormalVisual.shader" />
     <None Include="res\shaders\Instanced.shader" />
+    <None Include="res\shaders\DebugDepthQuad.shader" />
+    <None Include="res\shaders\SimpleDepth.shader" />
+    <None Include="res\shaders\SimplePointDepth.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VertexBuffer.h">
