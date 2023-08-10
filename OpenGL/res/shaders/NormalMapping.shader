@@ -9,17 +9,12 @@ layout(location = 4) in vec3 bitangent;
 out VS_OUT{
     vec3 FragPos;
     vec2 TexCoords;
-    vec3 TangentLightPos;
-    vec3 TangentViewPos;
-    vec3 TangentFragPos;
+    mat3 TBN;
 } vs_out;
 
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-
-uniform vec3 lightPos;
-uniform vec3 viewPos;
 
 void main() {
     gl_Position = projection * view * model * vec4(position, 1.0f);
@@ -31,10 +26,7 @@ void main() {
     vec3 B = normalize(normalMatrix * bitangent);
     vec3 N = normalize(normalMatrix * normal);
 
-    mat3 TBN = transpose(mat3(T, B, N));
-    vs_out.TangentLightPos = TBN * lightPos;
-    vs_out.TangentViewPos = TBN * viewPos;
-    vs_out.TangentFragPos = TBN * vs_out.FragPos;
+    vs_out.TBN = mat3(T, B, N);
 }
 
 #shader fragment
@@ -45,10 +37,11 @@ out vec4 FragColor;
 in VS_OUT{
     vec3 FragPos;
     vec2 TexCoords;
-    vec3 TangentLightPos;
-    vec3 TangentViewPos;
-    vec3 TangentFragPos;
+    mat3 TBN;
 } fs_in;
+
+uniform vec3 lightPos;
+uniform vec3 viewPos;
 
 uniform sampler2D diffuseMap;
 uniform sampler2D normalMap;
@@ -56,16 +49,17 @@ uniform sampler2D normalMap;
 void main() {
     vec3 normal = texture(normalMap, fs_in.TexCoords).rgb;
     normal = normalize(normal * 2.0 - 1.0);
+    normal = normalize(fs_in.TBN * normal);
 
     vec3 color = texture(diffuseMap, fs_in.TexCoords).rgb;
 
     vec3 ambient = 0.1 * color;
 
-    vec3 lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * color;
 
-    vec3 viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
+    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
