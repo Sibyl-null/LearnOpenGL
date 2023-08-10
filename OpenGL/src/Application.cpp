@@ -23,7 +23,6 @@ void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 void ProcessInput(GLFWwindow* window);
 void MouseCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-void RenderScene(Shader& shader, Renderer& renderer, VertexArray& cubeVAO);
 
 const unsigned int Scr_Width = 800;
 const unsigned int Scr_Height = 600;
@@ -32,100 +31,95 @@ static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
 static float lastTime = 0.0f;   // 上一帧的时间
 
 static Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-static glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+static glm::vec3 lightPos(0.5f, 1.0f, 0.3f);
 
 int main(void)
 {
     GLFWwindow* window = OpenGLInit();
 
-    float cubeVertices[] = {
-        // back face
-        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-         1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-        -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-        // front face
-        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-         1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-        -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-        // left face
-        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-        -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-        -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-        // right face
-         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-         1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
-         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-         1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
-        // bottom face
-        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-         1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-         1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-         1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-        -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-        // top face
-        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-         1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-         1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
-         1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-        -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+    // positions
+    glm::vec3 pos1(-1.0, 1.0, 0.0);
+    glm::vec3 pos2(-1.0, -1.0, 0.0);
+    glm::vec3 pos3(1.0, -1.0, 0.0);
+    glm::vec3 pos4(1.0, 1.0, 0.0);
+    // texture coordinates
+    glm::vec2 uv1(0.0, 1.0);
+    glm::vec2 uv2(0.0, 0.0);
+    glm::vec2 uv3(1.0, 0.0);
+    glm::vec2 uv4(1.0, 1.0);
+    // normal vector
+    glm::vec3 nm(0.0, 0.0, 1.0);
+
+    glm::vec3 tangent1, bitangent1;
+    glm::vec3 tangent2, bitangent2;
+
+    // - triangle 1
+    glm::vec3 edge1 = pos2 - pos1;
+    glm::vec3 edge2 = pos3 - pos1;
+    glm::vec2 deltaUV1 = uv2 - uv1;
+    glm::vec2 deltaUV2 = uv3 - uv1;
+    float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+    tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+    tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+    tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+    tangent1 = glm::normalize(tangent1);
+
+    bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+    bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+    bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+    bitangent1 = glm::normalize(bitangent1);
+
+    // - triangle 2
+    edge1 = pos3 - pos1;
+    edge2 = pos4 - pos1;
+    deltaUV1 = uv3 - uv1;
+    deltaUV2 = uv4 - uv1;
+    f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+    tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+    tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+    tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+    tangent2 = glm::normalize(tangent2);
+
+
+    bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+    bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+    bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+    bitangent2 = glm::normalize(bitangent2);
+
+    // ---------------------------------------------------
+
+    float quadVertices[] = {
+        // Positions            // normal         // TexCoords  // Tangent                          // Bitangent
+        pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+        pos2.x, pos2.y, pos2.z, nm.x, nm.y, nm.z, uv2.x, uv2.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+        pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+
+        pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z,
+        pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z,
+        pos4.x, pos4.y, pos4.z, nm.x, nm.y, nm.z, uv4.x, uv4.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z
     };
 
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
     // glfwTerminate调用之后，opengl上下文销毁，glGetError会一直返回一个错误，使GLClearError方法进入死循环
     {
-        VertexArray cubeVAO;
-        VertexBuffer cubeVBO(cubeVertices, sizeof(cubeVertices));
-        VertexBufferLayout cubeLayout;
-        cubeLayout.Push<float>(3);
-        cubeLayout.Push<float>(3);
-        cubeLayout.Push<float>(2);
-        cubeVAO.AddBuffer(cubeVBO, cubeLayout);
+        VertexArray quadVAO;
+        VertexBuffer quadVBO(quadVertices, sizeof(quadVertices));
+        VertexBufferLayout quadLayout;
+        quadLayout.Push<float>(3);
+        quadLayout.Push<float>(3);
+        quadLayout.Push<float>(2);
+        quadLayout.Push<float>(3);
+        quadLayout.Push<float>(3);
+        quadVAO.AddBuffer(quadVBO, quadLayout);
 
         // ---------------------------------------------------
 
-        Shader basicShader("res/shaders/Basic.shader");
-        Shader simpleDepthShader("res/shaders/SimplePointDepth.shader");
+        Shader normalShader("res/shaders/NormalMapping.shader");
 
-        Texture woodTexture("res/textures/wood.png", TextureType::texture_diffuse);
-
-        // ---------------------------------------------------
-
-        const unsigned int Shadow_Width = 1024, Shadow_Height = 1024;
-        unsigned int depthMapFBO;
-        GLCall(glGenFramebuffers(1, &depthMapFBO));
-
-        unsigned int depthCubeMap;
-        GLCall(glGenTextures(1, &depthCubeMap));
-        GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap));
-        for (unsigned int i = 0; i < 6; ++i) {
-            GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
-                Shadow_Width, Shadow_Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
-        }
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-        GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
-
-        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO));
-        GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubeMap, 0));
-        GLCall(glDrawBuffer(GL_NONE));
-        GLCall(glReadBuffer(GL_NONE));
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            std::cout << "Framebuffer not complete!" << std::endl;
+        Texture diffuseTexture("res/textures/brickwall.jpg", TextureType::texture_diffuse);
+        Texture normalTexture("res/textures/brickwall_normal.jpg", TextureType::texture_normal);
 
         // ---------------------------------------------------
 
@@ -141,56 +135,24 @@ int main(void)
             renderer.Clear();
             // ------------------------------------------------
 
-            // 1. 生成深度贴图
-            float aspect = (float)Shadow_Width / (float)Shadow_Height;
-            float near = 1.0f, far = 25.0f;
-            glm::mat4 shadowProj = glm::perspective(90.0f, aspect, near, far);
-
-            std::vector<glm::mat4> shadowMats;
-            shadowMats.push_back(shadowProj* glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-            shadowMats.push_back(shadowProj* glm::lookAt(lightPos, lightPos + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-            shadowMats.push_back(shadowProj* glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
-            shadowMats.push_back(shadowProj* glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)));
-            shadowMats.push_back(shadowProj* glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-            shadowMats.push_back(shadowProj* glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-
-            simpleDepthShader.Bind();
-            simpleDepthShader.SetUniform3f("lightPos", lightPos);
-            simpleDepthShader.SetUniform1f("far_plane", far);
-            for (int i = 0; i < shadowMats.size(); ++i) {
-                std::string uniformName = "shadowMatrices[" + std::to_string(i) + "]";
-                simpleDepthShader.SetUniformMat4f(uniformName, shadowMats[i]);
-            }
-
-            GLCall(glViewport(0, 0, Shadow_Width, Shadow_Height));
-            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO));
-            GLCall(glClear(GL_DEPTH_BUFFER_BIT));
-
-            RenderScene(simpleDepthShader, renderer, cubeVAO);
-            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-
-            // 2. 渲染场景
-            GLCall(glViewport(0, 0, Scr_Width, Scr_Height));
-            GLCall(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
-
-            glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()), 
+            glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
             glm::mat4 view = camera.GetViewMatrix();
+            glm::mat4 model;
 
-            basicShader.Bind();
-            basicShader.SetUniformMat4f("view", view);
-            basicShader.SetUniformMat4f("projection", projection);
-            basicShader.SetUniform3f("lightPos", lightPos);
-            basicShader.SetUniform3f("viewPos", camera.GetPosition());
-            basicShader.SetUniform1f("far_plane", far);
-            basicShader.SetUniform1i("diffuseTexture", 0);
-            basicShader.SetUniform1i("depthMap", 1);
+            normalShader.Bind();
+            normalShader.SetUniformMat4f("projection", projection);
+            normalShader.SetUniformMat4f("view", view);
+            normalShader.SetUniformMat4f("model", model);
+            normalShader.SetUniform3f("lightPos", lightPos);
+            normalShader.SetUniform3f("viewPos", camera.GetPosition());
+            normalShader.SetUniform1i("diffuseMap", 0);
+            normalShader.SetUniform1i("normalMap", 1);
 
-            woodTexture.Bind(0);
-            GLCall(glActiveTexture(GL_TEXTURE1));
-            GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap));
-
-            RenderScene(basicShader, renderer, cubeVAO);
+            diffuseTexture.Bind(0);
+            normalTexture.Bind(1);
+            
+            renderer.DrawArrays(quadVAO, normalShader, 6);
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
@@ -244,48 +206,4 @@ void MouseCallback(GLFWwindow* window, double xpos, double ypos) {
 
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     camera.ProcessMouseScroll(yoffset);
-}
-
-void RenderScene(Shader& shader, Renderer& renderer, VertexArray& cubeVAO) {
-    // Room cube
-    glm::mat4 model;
-    model = glm::scale(model, glm::vec3(10.0));
-    shader.Bind();
-    shader.SetUniformMat4f("model", model);
-    shader.SetUniform1i("reverse_normals", 1);
-    glDisable(GL_CULL_FACE);
-    cubeVAO.Bind();
-    renderer.DrawArrays(cubeVAO, shader, 36);
-    glEnable(GL_CULL_FACE);
-    shader.SetUniform1i("reverse_normals", 0);
-
-    // cubes
-    model = glm::mat4();
-    model = glm::translate(model, glm::vec3(4.0f, -3.5f, 0.0));
-    shader.SetUniformMat4f("model", model);
-    cubeVAO.Bind();
-    renderer.DrawArrays(cubeVAO, shader, 36);
-
-    model = glm::mat4();
-    model = glm::translate(model, glm::vec3(2.0f, 3.0f, 1.0));
-    model = glm::scale(model, glm::vec3(1.5));
-    shader.SetUniformMat4f("model", model);
-    renderer.DrawArrays(cubeVAO, shader, 36);
-
-    model = glm::mat4();
-    model = glm::translate(model, glm::vec3(-3.0f, -1.0f, 0.0));
-    shader.SetUniformMat4f("model", model);
-    renderer.DrawArrays(cubeVAO, shader, 36);
-
-    model = glm::mat4();
-    model = glm::translate(model, glm::vec3(-1.5f, 1.0f, 1.5));
-    shader.SetUniformMat4f("model", model);
-    renderer.DrawArrays(cubeVAO, shader, 36);
-
-    model = glm::mat4();
-    model = glm::translate(model, glm::vec3(-1.5f, 2.0f, -3.0));
-    model = glm::rotate(model, 60.0f, glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-    model = glm::scale(model, glm::vec3(1.5));
-    shader.SetUniformMat4f("model", model);
-    renderer.DrawArrays(cubeVAO, shader, 36);
 }
