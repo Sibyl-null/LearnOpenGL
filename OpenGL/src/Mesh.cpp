@@ -68,6 +68,9 @@ void Mesh::SetupMesh()
     // 顶点 uv 坐标
     GLCall(glEnableVertexAttribArray(2));
     GLCall(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords)));
+    // 顶点切线
+    GLCall(glEnableVertexAttribArray(3));
+    GLCall(glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent)));
 
     GLCall(glBindVertexArray(0));
 }
