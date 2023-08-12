@@ -30,73 +30,80 @@ const unsigned int Scr_Height = 600;
 static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
 static float lastTime = 0.0f;   // 上一帧的时间
 
-static Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-static glm::vec3 lightPos(0.5f, 1.0f, 0.3f);
+static Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
 
 int main(void)
 {
     GLFWwindow* window = OpenGLInit();
 
-    glm::vec3 pos1(-1.0, 1.0, 0.0);
-    glm::vec3 pos2(-1.0, -1.0, 0.0);
-    glm::vec3 pos3(1.0, -1.0, 0.0);
-    glm::vec3 pos4(1.0, 1.0, 0.0);
-    // texture coordinates
-    glm::vec2 uv1(0.0, 1.0);
-    glm::vec2 uv2(0.0, 0.0);
-    glm::vec2 uv3(1.0, 0.0);
-    glm::vec2 uv4(1.0, 1.0);
-    // normal vector
-    glm::vec3 nm(0.0, 0.0, 1.0);
-
-    // calculate tangent/bitangent vectors of both triangles
-    glm::vec3 tangent1, bitangent1;
-    glm::vec3 tangent2, bitangent2;
-    // - triangle 1
-    glm::vec3 edge1 = pos2 - pos1;
-    glm::vec3 edge2 = pos3 - pos1;
-    glm::vec2 deltaUV1 = uv2 - uv1;
-    glm::vec2 deltaUV2 = uv3 - uv1;
-
-    float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
-    tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-    tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-    tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-    tangent1 = glm::normalize(tangent1);
-
-    bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-    bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-    bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
-    bitangent1 = glm::normalize(bitangent1);
-
-    // - triangle 2
-    edge1 = pos3 - pos1;
-    edge2 = pos4 - pos1;
-    deltaUV1 = uv3 - uv1;
-    deltaUV2 = uv4 - uv1;
-
-    f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
-    tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-    tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
-    tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
-    tangent2 = glm::normalize(tangent2);
-
-    bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
-    bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
-    bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
-    bitangent2 = glm::normalize(bitangent2);
+    // Light sources
+    // - Positions
+    std::vector<glm::vec3> lightPositions;
+    lightPositions.push_back(glm::vec3(0.0f, 0.0f, 49.5f)); // back light
+    lightPositions.push_back(glm::vec3(-1.4f, -1.9f, 9.0f));
+    lightPositions.push_back(glm::vec3(0.0f, -1.8f, 4.0f));
+    lightPositions.push_back(glm::vec3(0.8f, -1.7f, 6.0f));
+    // - Colors
+    std::vector<glm::vec3> lightColors;
+    lightColors.push_back(glm::vec3(200.0f, 200.0f, 200.0f));
+    lightColors.push_back(glm::vec3(0.1f, 0.0f, 0.0f));
+    lightColors.push_back(glm::vec3(0.0f, 0.0f, 0.2f));
+    lightColors.push_back(glm::vec3(0.0f, 0.1f, 0.0f));
 
     float quadVertices[] = {
-        // Positions            // normal         // TexCoords  // Tangent                          // Bitangent
-        pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
-        pos2.x, pos2.y, pos2.z, nm.x, nm.y, nm.z, uv2.x, uv2.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
-        pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+        // positions        // texture Coords
+        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
 
-        pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z,
-        pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z,
-        pos4.x, pos4.y, pos4.z, nm.x, nm.y, nm.z, uv4.x, uv4.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z
+         1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+         -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+         1.0f, -1.0f, 0.0f, 1.0f, 0.0f
+    };
+
+    float cubeVertices[] = {
+        // Back face
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // Bottom-left
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,  // top-right
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,  // bottom-left
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,// top-left
+        // Front face
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom-right
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top-right
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // top-right
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // top-left
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom-left
+        // Left face
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
+        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-left
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom-left
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
+        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
+        // Right face
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-left
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-right
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-right         
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom-right
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  // top-left
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left     
+        // Bottom face
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
+        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, // top-left
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,// bottom-left
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
+        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom-right
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
+        // Top face
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,// top-left
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // top-right     
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,// top-left
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f // bottom-left        
     };
 
     // 一个新的作用域，让VertexBuffer/IndexBuffer的析构发生在glfwTerminate之前
@@ -106,17 +113,44 @@ int main(void)
         VertexBuffer quadVBO(quadVertices, sizeof(quadVertices));
         VertexBufferLayout quadLayout;
         quadLayout.Push<float>(3);
-        quadLayout.Push<float>(3);
         quadLayout.Push<float>(2);
-        quadLayout.Push<float>(3);
-        quadLayout.Push<float>(3);
         quadVAO.AddBuffer(quadVBO, quadLayout);
 
-        Shader parallaxShader("res/shaders/ParallaxMapping.shader");
+        VertexArray cubeVAO;
+        VertexBuffer cubeVBO(cubeVertices, sizeof(cubeVertices));
+        VertexBufferLayout cubeLayout;
+        cubeLayout.Push<float>(3);
+        cubeLayout.Push<float>(3);
+        cubeLayout.Push<float>(2);
+        cubeVAO.AddBuffer(cubeVBO, cubeLayout);
 
-        Texture diffuseTexture("res/textures/bricks2.jpg", TextureType::texture_diffuse);
-        Texture normalTexture("res/textures/bricks2_normal.jpg", TextureType::texture_normal);
-        Texture heightTexture("res/textures/bricks2_disp.jpg", TextureType::texture_height);
+        Texture woodTexture("res/textures/wood.png", TextureType::texture_diffuse);
+
+        Shader mulitLightShader("res/shaders/MultiLight.shader");
+        Shader hdrShader("res/shaders/Hdr.shader");
+
+        // ---------------------------------------------------
+
+        unsigned int hdrFBO;
+        GLCall(glGenFramebuffers(1, &hdrFBO));
+
+        unsigned int colorBuffer;
+        GLCall(glGenTextures(1, &colorBuffer));
+        GLCall(glBindTexture(GL_TEXTURE_2D, colorBuffer));
+        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Scr_Width, Scr_Height, 0, GL_RGBA, GL_FLOAT, nullptr));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+        unsigned int rboDepth;
+        GLCall(glGenRenderbuffers(1, &rboDepth));
+        GLCall(glBindRenderbuffer(GL_RENDERBUFFER, rboDepth));
+        GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Scr_Width, Scr_Height));
+
+        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO));
+        GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0));
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "Framebuffer not complete!" << std::endl;
+        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
         // ---------------------------------------------------
 
@@ -135,25 +169,42 @@ int main(void)
             glm::mat4 projection = glm::perspective(glm::radians(camera.GetFoV()),
                 (float)Scr_Width / (float)Scr_Height, 0.1f, 100.0f);
             glm::mat4 view = camera.GetViewMatrix();
+
+            // 1. Render scene into floating point framebuffer
+            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO));
+            renderer.Clear();
+
             glm::mat4 model;
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 25.0));
+            model = glm::scale(model, glm::vec3(5.0f, 5.0f, 55.0f));
 
-            parallaxShader.Bind();
-            parallaxShader.SetUniformMat4f("projection", projection);
-            parallaxShader.SetUniformMat4f("view", view);
-            parallaxShader.SetUniformMat4f("model", model);
-            parallaxShader.SetUniform3f("lightPos", lightPos);
-            parallaxShader.SetUniform3f("viewPos", camera.GetPosition());
-            parallaxShader.SetUniform1i("diffuseMap", 0);
-            parallaxShader.SetUniform1i("normalMap", 1);
-            parallaxShader.SetUniform1i("depthMap", 2);
-            parallaxShader.SetUniform1f("height_scale", 0.1f);
+            mulitLightShader.Bind();
+            mulitLightShader.SetUniformMat4f("projection", projection);
+            mulitLightShader.SetUniformMat4f("view", view);
+            mulitLightShader.SetUniformMat4f("model", model);
+            mulitLightShader.SetUniform1i("inverse_normals", true);
+            mulitLightShader.SetUniform1i("diffuseTexture", 0);
+            for (unsigned int i = 0; i < 4; ++i) {
+                std::string uniformName = "lights[" + std::to_string(i) + "].";
+                mulitLightShader.SetUniform3f(uniformName + "Position", lightPositions[i]);
+                mulitLightShader.SetUniform3f(uniformName + "Color", lightColors[i]);
+            }
 
-            diffuseTexture.Bind(0);
-            normalTexture.Bind(1);
-            heightTexture.Bind(2);
+            woodTexture.Bind(0);
+            renderer.DrawArrays(cubeVAO, mulitLightShader, 36);
 
-            renderer.DrawArrays(quadVAO, parallaxShader, 6);
+            // 2. 现在将浮点颜色缓冲区渲染为2D四边形，并将色调映射HDR颜色渲染为默认framebuffer的(固定)颜色范围
+            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+            renderer.Clear();
 
+            hdrShader.Bind();
+            hdrShader.SetUniform1i("hdrBuffer", 0);
+
+            GLCall(glActiveTexture(GL_TEXTURE0));
+            GLCall(glBindTexture(GL_TEXTURE_2D, colorBuffer));
+
+            renderer.DrawArrays(quadVAO, hdrShader, 6);
+            
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
             GLCall(glfwPollEvents());

@@ -72,6 +72,8 @@
     <None Include="res\shaders\SimplePointDepth.shader" />
     <None Include="res\shaders\NormalMapping.shader" />
     <None Include="res\shaders\ParallaxMapping.shader" />
+    <None Include="res\shaders\MultiLight.shader" />
+    <None Include="res\shaders\Hdr.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VertexBuffer.h">
