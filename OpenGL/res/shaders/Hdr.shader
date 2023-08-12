@@ -22,5 +22,7 @@ uniform sampler2D hdrBuffer;
 void main()
 {
     vec3 hdrColor = texture(hdrBuffer, TexCoords).rgb;
-    color = vec4(hdrColor, 1.0);
+    vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
+
+    color = vec4(mapped, 1.0);
 }
