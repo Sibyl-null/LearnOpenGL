@@ -163,6 +163,10 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\Bloom\BasicBloom.shader" />
+    <None Include="res\shaders\Bloom\Blur.shader" />
+    <None Include="res\shaders\Bloom\LightBoxBloom.shader" />
+    <None Include="res\shaders\Bloom\MixBloom.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\DebugDepthQuad.shader" />
     <None Include="res\shaders\EnvironmentMapping.shader" />

@@ -74,6 +74,10 @@
     <None Include="res\shaders\ParallaxMapping.shader" />
     <None Include="res\shaders\MultiLight.shader" />
     <None Include="res\shaders\Hdr.shader" />
+    <None Include="res\shaders\Bloom\BasicBloom.shader" />
+    <None Include="res\shaders\Bloom\LightBoxBloom.shader" />
+    <None Include="res\shaders\Bloom\Blur.shader" />
+    <None Include="res\shaders\Bloom\MixBloom.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VertexBuffer.h">
