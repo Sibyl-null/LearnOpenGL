@@ -169,7 +169,9 @@
     <None Include="res\shaders\Bloom\MixBloom.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\DebugDepthQuad.shader" />
+    <None Include="res\shaders\Deferred.shader" />
     <None Include="res\shaders\EnvironmentMapping.shader" />
+    <None Include="res\shaders\G_buffer.shader" />
     <None Include="res\shaders\Hdr.shader" />
     <None Include="res\shaders\Instanced.shader" />
     <None Include="res\shaders\Light.shader" />

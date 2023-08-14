@@ -78,6 +78,8 @@
     <None Include="res\shaders\Bloom\LightBoxBloom.shader" />
     <None Include="res\shaders\Bloom\Blur.shader" />
     <None Include="res\shaders\Bloom\MixBloom.shader" />
+    <None Include="res\shaders\G_buffer.shader" />
+    <None Include="res\shaders\Deferred.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VertexBuffer.h">
