@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
-    <None Include="res\shaders\Light.shader" />
+    <None Include="res\shaders\LightBox.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="packages.config" />
     <None Include="res\shaders\ModelLoading.shader" />

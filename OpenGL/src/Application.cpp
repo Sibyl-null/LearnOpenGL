@@ -144,6 +144,7 @@ int main(void)
 
         Shader gBufferShader("res/shaders/G_buffer.shader");
         Shader deferredShader("res/shaders/Deferred.shader");
+        Shader lightBoxShader("res/shaders/LightBox.shader");
 
         // ---------------------------------------------------
 
@@ -253,6 +254,24 @@ int main(void)
             GLCall(glBindTexture(GL_TEXTURE_2D, gAlbedoSpec));
 
             renderer.DrawArrays(quadVAO, deferredShader, 6);
+
+            // 3. Render lights on top of scene, by blitting
+            GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer));
+            GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
+            GLCall(glBlitFramebuffer(0, 0, Scr_Width, Scr_Height, 0, 0, Scr_Width, Scr_Height, GL_DEPTH_BUFFER_BIT, GL_NEAREST));
+            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+            lightBoxShader.Bind();
+            lightBoxShader.SetUniformMat4f("projection", projection);
+            lightBoxShader.SetUniformMat4f("view", view);
+            for (unsigned int i = 0; i < NR_LIGHTS; ++i) {
+                model = glm::mat4();
+                model = glm::translate(model, lightPositions[i]);
+                model = glm::scale(model, glm::vec3(0.25f));
+                lightBoxShader.SetUniformMat4f("model", model);
+                lightBoxShader.SetUniform3f("lightColor", lightColors[i]);
+                renderer.DrawArrays(cubeVAO, lightBoxShader, 36);
+            }
 
             // ------------------------------------------------
             GLCall(glfwSwapBuffers(window));
