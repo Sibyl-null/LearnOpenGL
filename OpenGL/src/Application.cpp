@@ -236,6 +236,7 @@ int main(void)
             deferredShader.SetUniform1i("gNormal", 1);
             deferredShader.SetUniform1i("gAlbedoSpec", 2);
             deferredShader.SetUniform3f("viewPos", camera.GetPosition());
+            const float constant = 1.0;
             const float linear = 0.7;
             const float quadratic = 1.8;
             for (unsigned int i = 0; i < NR_LIGHTS; ++i) {
@@ -244,6 +245,10 @@ int main(void)
                 deferredShader.SetUniform3f(uniformName + "Color", lightColors[i]);
                 deferredShader.SetUniform1f(uniformName + "Linear", linear);
                 deferredShader.SetUniform1f(uniformName + "Quadratic", quadratic);
+
+                float maxBrightness = std::fmaxf(std::fmaxf(lightColors[i].r, lightColors[i].g), lightColors[i].b);
+                float radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - (256.0 / 5.0) * maxBrightness))) / (2 * quadratic);
+                deferredShader.SetUniform1f(uniformName + "Radius", radius);
             }
 
             GLCall(glActiveTexture(GL_TEXTURE0));
