@@ -163,10 +163,12 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\BasicSSAO.shader" />
     <None Include="res\shaders\Bloom\BasicBloom.shader" />
     <None Include="res\shaders\Bloom\Blur.shader" />
     <None Include="res\shaders\Bloom\LightBoxBloom.shader" />
     <None Include="res\shaders\Bloom\MixBloom.shader" />
+    <None Include="res\shaders\BlurSSAO.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\DebugDepthQuad.shader" />
     <None Include="res\shaders\Deferred.shader" />
@@ -175,6 +177,7 @@
     <None Include="res\shaders\Hdr.shader" />
     <None Include="res\shaders\Instanced.shader" />
     <None Include="res\shaders\LightBox.shader" />
+    <None Include="res\shaders\LightSSAO.shader" />
     <None Include="res\shaders\ModelLoading.shader" />
     <None Include="res\shaders\MultiLight.shader" />
     <None Include="res\shaders\NormalVisual.shader" />
